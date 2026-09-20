@@ -2,6 +2,7 @@ import escarpin from "./assets/watch-escarpin.png";
 import seau from "./assets/watch-seau.png";
 import valise from "./assets/watch-valise.png";
 import sac from "./assets/watch-sac.png";
+import { hexFromColorName } from "./color-hex";
 
 export type StockStatus = "ok" | "bas" | "rupture";
 
@@ -280,7 +281,7 @@ function hydrate(draft: ProductDraft): CatalogProduct {
       name: item.name,
       nameAr: item.nameAr ?? "",
       photo: item.photo ?? "",
-      hex: item.hex ?? "",
+      hex: item.hex || hexFromColorName(item.name) || "",
     })),
     addedAt: draft.addedAt ?? Date.now(),
     variants,

@@ -1,9 +1,10 @@
 import { findByRef, setSitePublish, type CatalogProduct } from "./catalog";
+import { colorKey, resolveColorHex } from "./color-hex";
 import { loadSettings } from "./settings";
 
 function siteUrl() {
   const fromSettings = loadSettings().siteUrl?.trim();
-  return (fromSettings || import.meta.env.VITE_ZELLA_SITE_URL || "https://zellaluxe.net").replace(/\/$/, "");
+  return (fromSettings || import.meta.env.VITE_ZELLA_SITE_URL || "https://www.zellaluxe.net").replace(/\/$/, "");
 }
 
 function syncKey() {
@@ -19,19 +20,52 @@ function usableImage(src?: string) {
   return "";
 }
 
-function payload(product: CatalogProduct) {
-  const colors = product.colors.map((name) => {
-    const info = product.colorInfo.find((item) => item.name === name);
+function compactImage(src?: string) {
+  const value = usableImage(src);
+  if (!value.startsWith("data:image/")) return Promise.resolve(value);
+  return new Promise<string>((resolve) => {
+    const image = new Image();
+    image.onload = () => {
+      const max = 1400;
+      const scale = Math.min(1, max / Math.max(image.width, image.height));
+      const width = Math.max(1, Math.round(image.width * scale));
+      const height = Math.max(1, Math.round(image.height * scale));
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) {
+        resolve(value);
+        return;
+      }
+      ctx.drawImage(image, 0, 0, width, height);
+      resolve(canvas.toDataURL("image/jpeg", 0.82));
+    };
+    image.onerror = () => resolve(value);
+    image.src = value;
+  });
+}
+
+async function payload(product: CatalogProduct) {
+  const colors = await Promise.all(product.colors.map(async (name, index) => {
+    const key = colorKey(name);
+    const info =
+      product.colorInfo.find((item) => colorKey(item.name) === key) ??
+      product.colorInfo[index];
     return {
       nameFr: name,
       nameAr: info?.nameAr || name,
-      hex: info?.hex || "",
-      photo: usableImage(info?.photo),
+      hex: resolveColorHex(info?.hex, name),
+      photo: await compactImage(info?.photo || (index === 0 ? product.photo : "")),
       sizes: product.variants
         .filter((row) => row.color === name)
         .map((row) => ({ size: row.size, qty: row.qty })),
     };
-  }).filter((row) => row.sizes.length > 0);
+  }));
+
+  const ready = colors.filter((row) => row.sizes.length > 0);
+  const mainPhoto = await compactImage(product.photo);
+  const images = [mainPhoto, ...ready.map((row) => row.photo)].filter(Boolean);
 
   return {
     reference: product.ref,
@@ -46,14 +80,16 @@ function payload(product: CatalogProduct) {
     onPromo: product.onPromo,
     promoPrice: product.promoPrice,
     featured: product.featured,
-    images: [usableImage(product.photo), ...colors.map((row) => row.photo)].filter(Boolean),
-    colors,
+    images,
+    colors: ready,
   };
 }
 
 function explainFailure(status: number, error?: string) {
+  if (status === 401 || error === "Non autorisé") {
+    return "Clé refusée. Dans Paramètres, mets exactement la même clé que ZELLA_STOCK_KEY sur Vercel.";
+  }
   if (error) return error;
-  if (status === 401) return "Clé refusée. Mets la même ZELLA_STOCK_KEY sur zellaluxe.net et dans Paramètres.";
   if (status === 404) return "L’API n’est pas encore en ligne. Déploie le site zellaluxe.net avec le dernier code.";
   if (status === 0) return "Impossible de joindre zellaluxe.net. Vérifie l’adresse dans Paramètres et ta connexion.";
   return `Erreur ${status} côté site.`;
@@ -91,7 +127,7 @@ export async function publishToSite(ref: string) {
   const product = findByRef(ref);
   if (!product) throw new Error("Produit introuvable dans Zella Stock.");
   if (product.colors.length === 0) throw new Error("Ajoutez au moins une couleur avant de publier.");
-  const result = await call("/api/stock/publish", payload(product));
+  const result = await call("/api/stock/publish", await payload(product));
   setSitePublish(product.ref, true, result.id ?? product.siteProductId);
 }
 

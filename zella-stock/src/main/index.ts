@@ -55,18 +55,40 @@ function createWindow(): void {
   }
 }
 
+function publishUrl(raw: string) {
+  try {
+    const url = new URL(raw);
+    if (url.hostname === "zellaluxe.net") url.hostname = "www.zellaluxe.net";
+    return url.toString();
+  } catch {
+    return raw.replace("://zellaluxe.net", "://www.zellaluxe.net");
+  }
+}
+
 app.whenReady().then(() => {
   ipcMain.handle("site:request", async (_event, payload: { url: string; key: string; body: unknown }) => {
-    const res = await fetch(payload.url, {
+    const res = await fetch(publishUrl(payload.url), {
       method: "POST",
+      redirect: "manual",
       headers: {
         "Content-Type": "application/json",
         Authorization: `Bearer ${payload.key}`,
       },
       body: JSON.stringify(payload.body),
     });
-    const data = await res.json().catch(() => ({}));
-    return { ok: res.ok, status: res.status, data };
+    const redirected = res.status >= 300 && res.status < 400 ? res.headers.get("location") : null;
+    const finalRes = redirected
+      ? await fetch(publishUrl(redirected), {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${payload.key}`,
+          },
+          body: JSON.stringify(payload.body),
+        })
+      : res;
+    const data = await finalRes.json().catch(() => ({}));
+    return { ok: finalRes.ok, status: finalRes.status, data };
   });
 
   createWindow();

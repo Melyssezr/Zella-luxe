@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState, type ChangeEvent, type DragEvent } from "react";
 import { findByRef, stockStatus, upsertProduct, type StockStatus } from "./catalog";
+import { hexFromColorName } from "./color-hex";
 import accueilBg from "./assets/accueil-bg.png";
 
 type Props = {
@@ -143,7 +144,18 @@ export function AddProductModal({ onClose }: Props) {
   function updateColor(id: string, next: Partial<ColorRow>) {
     setForm((current) => ({
       ...current,
-      colors: current.colors.map((row) => (row.id === id ? { ...row, ...next } : row)),
+      colors: current.colors.map((row) => {
+        if (row.id !== id) return row;
+        const merged = { ...row, ...next };
+        if (next.nameFr != null) {
+          const named = hexFromColorName(next.nameFr);
+          const previousNamed = hexFromColorName(row.nameFr);
+          const hex = (row.hex || "").toLowerCase();
+          const auto = !hex || hex === "#ffffff" || (previousNamed && previousNamed.toLowerCase() === hex);
+          if (named && auto) merged.hex = named;
+        }
+        return merged;
+      }),
     }));
     setError("");
     setSuccess("");
@@ -238,7 +250,12 @@ export function AddProductModal({ onClose }: Props) {
       onPromo: form.onPromo,
       promoPrice: form.onPromo ? Math.max(0, Number(form.promoPrice) || 0) : 0,
       featured: form.featured,
-      colorInfo: readyColors.map((row) => ({ name: row.nameFr, nameAr: row.nameAr, photo: row.photo, hex: row.hex })),
+      colorInfo: readyColors.map((row) => ({
+        name: row.nameFr,
+        nameAr: row.nameAr,
+        photo: row.photo,
+        hex: row.hex || hexFromColorName(row.nameFr),
+      })),
       variants: readyColors.flatMap((row) =>
         row.sizes.map((size) => ({
           color: row.nameFr,

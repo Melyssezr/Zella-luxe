@@ -1,8 +1,9 @@
 import { timingSafeEqual } from "crypto";
 import { prisma } from "@/lib/prisma";
 import { CACHE_TAGS, expireStorefrontCache } from "@/lib/cache-tags";
-import { sanitizeText } from "@/lib/security";
-import { slugify } from "@/lib/utils";
+import { sanitizeText, isAllowedImageMime, looksLikeImageBuffer } from "@/lib/security";
+import { resolveColorHex, slugify } from "@/lib/utils";
+import { uploadMediaImage } from "@/lib/media-storage";
 import { legacyFieldsFromVariants, type ProductVariantsData } from "@/lib/variants";
 
 const CATEGORY_SLUG: Record<string, string> = {
@@ -114,13 +115,28 @@ function usableImage(src?: string) {
   return "";
 }
 
+async function persistStockImage(src?: string) {
+  const value = usableImage(src);
+  if (!value) return "";
+  if (value.startsWith("data:image/")) {
+    const match = /^data:(image\/[a-zA-Z0-9.+-]+);base64,([\s\S]+)$/.exec(value);
+    if (!match) return "";
+    const mime = match[1].toLowerCase() === "image/jpg" ? "image/jpeg" : match[1].toLowerCase();
+    if (!isAllowedImageMime(mime)) return "";
+    const buffer = Buffer.from(match[2], "base64");
+    if (buffer.length > 8 * 1024 * 1024 || !looksLikeImageBuffer(buffer, mime)) return "";
+    return uploadMediaImage("products", buffer, mime);
+  }
+  return value;
+}
+
 function variantsFromBody(body: StockPublishBody, price: number): ProductVariantsData {
   const sizePrices = { ...(body.sizePrices ?? {}) };
   const colors = (body.colors ?? [])
     .map((row) => ({
       nameFr: row.nameFr.trim(),
       nameAr: (row.nameAr || row.nameFr).trim() || row.nameFr.trim(),
-      hex: row.hex?.trim() || undefined,
+      hex: resolveColorHex(row.hex, row.nameFr),
       image: usableImage(row.photo) || undefined,
       sizes: row.sizes
         .filter((item) => item.size.trim())
@@ -161,8 +177,24 @@ export async function publishStockProduct(body: StockPublishBody) {
     return jsonWithCors({ error: "Ajoutez au moins une couleur avec des tailles." }, 400);
   }
 
+  try {
+    variants.colors = await Promise.all(
+      variants.colors.map(async (color) => ({
+        ...color,
+        image: color.image ? await persistStockImage(color.image) : undefined,
+      }))
+    );
+  } catch {
+    return jsonWithCors({ error: "Impossible d'enregistrer les photos sur le site." }, 500);
+  }
+
   const legacy = legacyFieldsFromVariants(variants, body.uniquePrice !== false, price);
-  const images = (body.images ?? []).map(usableImage).filter(Boolean);
+  let images: string[] = [];
+  try {
+    images = (await Promise.all((body.images ?? []).map(persistStockImage))).filter(Boolean);
+  } catch {
+    return jsonWithCors({ error: "Impossible d'enregistrer les photos sur le site." }, 500);
+  }
   const promoPrice = Number(body.promoPrice);
   const data = {
     nameFr,

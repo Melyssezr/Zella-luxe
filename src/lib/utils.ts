@@ -68,11 +68,76 @@ export function getPromoDiscountPercent(price: number, promoPrice: number): numb
   return Math.round(((price - promoPrice) / price) * 100);
 }
 
+const NAMED_HEX: Record<string, string> = {
+  noir: "#1a1a1a",
+  noire: "#1a1a1a",
+  black: "#1a1a1a",
+  blanc: "#f7f4ee",
+  blanche: "#f7f4ee",
+  white: "#f7f4ee",
+  ivoire: "#f4edd8",
+  ivory: "#f4edd8",
+  champagne: "#ead9b5",
+  beige: "#dcc7a6",
+  nude: "#e6cbb3",
+  or: "#c9a86c",
+  gold: "#c9a86c",
+  dore: "#c9a86c",
+  doree: "#c9a86c",
+  argent: "#c5c5c5",
+  silver: "#c5c5c5",
+  gris: "#8a8a8a",
+  gray: "#8a8a8a",
+  grey: "#8a8a8a",
+  bordeaux: "#65232b",
+  burgundy: "#65232b",
+  wine: "#65232b",
+  rouge: "#9b1c1c",
+  red: "#9b1c1c",
+  rose: "#e8a0b0",
+  pink: "#e8a0b0",
+  marron: "#6b4423",
+  brown: "#6b4423",
+  chocolat: "#4a2c2a",
+  chocolate: "#4a2c2a",
+  bleu: "#1e3a5f",
+  blue: "#1e3a5f",
+  marine: "#1e3a5f",
+  navy: "#1e3a5f",
+  vert: "#3d5c3a",
+  green: "#3d5c3a",
+  camel: "#c19a6b",
+  taupe: "#8b7d6b",
+  kaki: "#6b6b3d",
+  khaki: "#6b6b3d",
+};
+
+export function colorKey(value: string) {
+  return value
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+}
+
+export function hexFromColorName(name?: string, fallback = "") {
+  if (!name?.trim()) return fallback;
+  return NAMED_HEX[colorKey(name)] || fallback;
+}
+
 export function normalizeHex(value: string, fallback = "#888888"): string {
   const trimmed = value.trim();
   if (/^#[0-9A-Fa-f]{6}$/.test(trimmed)) return trimmed;
   if (/^[0-9A-Fa-f]{6}$/.test(trimmed)) return `#${trimmed}`;
   return fallback;
+}
+
+export function resolveColorHex(hex?: string, name?: string) {
+  if (hex?.trim()) {
+    const normalized = normalizeHex(hex, "");
+    if (normalized) return normalized;
+  }
+  return hexFromColorName(name, "") || undefined;
 }
 
 export type ColorEntry = {
@@ -92,7 +157,7 @@ export function parseJsonColors(value: string): ColorEntry[] {
       nameFr: String(item?.nameFr ?? ""),
       nameAr: String(item?.nameAr ?? item?.nameFr ?? ""),
       image: item?.image ? String(item.image) : undefined,
-      hex: item?.hex ? normalizeHex(String(item.hex)) : undefined,
+      hex: resolveColorHex(item?.hex ? String(item.hex) : undefined, String(item?.nameFr ?? "")),
     }));
   } catch {
     return [];

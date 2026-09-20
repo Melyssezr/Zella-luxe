@@ -1,4 +1,4 @@
-import { normalizeHex, parseJsonArray, parseJsonColors, type ColorEntry } from "@/lib/utils";
+import { normalizeHex, parseJsonArray, parseJsonColors, resolveColorHex, type ColorEntry } from "@/lib/utils";
 
 /** Stock d’une taille sous une couleur. */
 export type ColorSizeStock = {
@@ -275,7 +275,7 @@ export function uniqueColorsFromVariants(data: ProductVariantsData): ColorEntry[
   return data.colors.map((c) => ({
     nameFr: c.nameFr,
     nameAr: c.nameAr,
-    hex: c.hex,
+    hex: resolveColorHex(c.hex, c.nameFr),
     image: c.image,
   }));
 }

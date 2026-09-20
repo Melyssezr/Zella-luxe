@@ -151,6 +151,7 @@ export function ProductCard({
             fill
             className="object-cover transition duration-700 group-hover:scale-[1.03]"
             sizes="(max-width: 768px) 100vw, 25vw"
+            unoptimized={displayImage.startsWith("data:")}
           />
 
           <div className="absolute left-3 top-3 flex flex-col items-start gap-1.5">

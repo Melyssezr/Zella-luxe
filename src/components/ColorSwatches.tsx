@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useLanguage } from "@/context/LanguageContext";
-import { getColorLabel, type ProductColor } from "@/lib/utils";
+import { getColorLabel, hexFromColorName, type ProductColor } from "@/lib/utils";
 import { t } from "@/lib/i18n";
 
 type ColorSwatchesProps = {
@@ -38,11 +38,11 @@ export function ColorSwatches({ colors, selected, onSelect, size = "md" }: Color
             }`}
           >
             {color.image ? (
-              <Image src={color.image} alt={getColorLabel(color, lang)} fill className="object-cover" sizes="56px" />
+              <Image src={color.image} alt={getColorLabel(color, lang)} fill className="object-cover" sizes="56px" unoptimized={color.image.startsWith("data:")} />
             ) : (
               <span
                 className="absolute inset-0"
-                style={{ backgroundColor: color.hex ?? "#888888" }}
+                style={{ backgroundColor: color.hex || hexFromColorName(color.nameFr, "#888888") }}
                 aria-hidden
               />
             )}

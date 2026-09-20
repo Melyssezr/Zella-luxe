@@ -67,7 +67,7 @@ export function ParametresScreen({ roleLabel, roleDetail }: { roleLabel: string;
         <h2>Site Zella Luxe</h2>
         <p className="params-hint">Zella Stock publie les produits sur zellaluxe.net. La clé doit être identique à ZELLA_STOCK_KEY sur le site.</p>
         <div className="params-grid">
-          <label className="wide">Adresse du site<input value={form.siteUrl} onChange={(e) => update("siteUrl", e.target.value)} placeholder="https://zellaluxe.net" /></label>
+          <label className="wide">Adresse du site<input value={form.siteUrl} onChange={(e) => update("siteUrl", e.target.value)} placeholder="https://www.zellaluxe.net" /></label>
           <label className="wide">Clé de synchronisation<input value={form.siteKey} onChange={(e) => update("siteKey", e.target.value)} placeholder="même valeur que ZELLA_STOCK_KEY" /></label>
         </div>
       </div>

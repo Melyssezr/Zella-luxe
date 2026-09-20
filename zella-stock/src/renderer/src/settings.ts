@@ -24,21 +24,30 @@ export const DEFAULT_SETTINGS: AppSettings = {
   displayName: "",
   ticketNote: "Merci pour votre visite.",
   syncSite: false,
-  siteUrl: "https://zellaluxe.net",
+  siteUrl: "https://www.zellaluxe.net",
   siteKey: "zella-stock-dev",
   lastSync: "",
   lastBackup: "",
 };
+
+function canonicalSiteUrl(url: string) {
+  const trimmed = url.trim().replace(/\/$/, "");
+  if (!trimmed || /localhost|127\.0\.0\.1/i.test(trimmed)) return DEFAULT_SETTINGS.siteUrl;
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.hostname === "zellaluxe.net") parsed.hostname = "www.zellaluxe.net";
+    return parsed.toString().replace(/\/$/, "");
+  } catch {
+    return trimmed;
+  }
+}
 
 export function loadSettings(): AppSettings {
   try {
     const raw = localStorage.getItem(KEY);
     if (!raw) return { ...DEFAULT_SETTINGS };
     const saved = { ...DEFAULT_SETTINGS, ...JSON.parse(raw) as Partial<AppSettings> };
-    const url = saved.siteUrl.trim();
-    if (!url || /localhost|127\.0\.0\.1/i.test(url)) {
-      saved.siteUrl = DEFAULT_SETTINGS.siteUrl;
-    }
+    saved.siteUrl = canonicalSiteUrl(saved.siteUrl);
     return saved;
   } catch {
     return { ...DEFAULT_SETTINGS };

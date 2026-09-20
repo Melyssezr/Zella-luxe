@@ -139,14 +139,14 @@ export function ProductDetailClient({
       <div className="grid gap-10 lg:grid-cols-2">
         <div>
           <div className="relative aspect-[3/4] overflow-hidden rounded-3xl border border-[#a07d3e]/20 shadow-[0_15px_45px_rgba(89,58,30,0.15)]">
-            <Image src={displayImage} alt={name} fill className="object-cover" priority sizes="50vw" />
+            <Image src={displayImage} alt={name} fill className="object-cover" priority sizes="50vw" unoptimized={displayImage.startsWith("data:")} />
           </div>
           {galleryImages.length > 1 && colorList.length === 0 && (
             <div className="mt-4 flex gap-2">
               {galleryImages.map((img, i) => (
                 <button key={img} type="button" onClick={() => setSelectedColor(i)}
                   className={`relative h-20 w-16 overflow-hidden rounded-xl border-2 transition ${selectedColor === i ? "border-[#c9a86c] shadow-[0_0_15px_rgba(201,168,108,0.4)]" : "border-[#a07d3e]/15"}`}>
-                  <Image src={img} alt="" fill className="object-cover" sizes="64px" />
+                  <Image src={img} alt="" fill className="object-cover" sizes="64px" unoptimized={img.startsWith("data:")} />
                 </button>
               ))}
             </div>

@@ -6,6 +6,8 @@ import {
   type StockPublishBody,
 } from "@/lib/stock-bridge";
 
+export const maxDuration = 60;
+
 export function OPTIONS() {
   return stockBridgePreflight();
 }

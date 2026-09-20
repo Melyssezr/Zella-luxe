@@ -109,9 +109,11 @@ async function resolveCatalogSlug(label: string) {
 function usableImage(src?: string) {
   const value = src?.trim() ?? "";
   if (!value) return "";
-  if (value.startsWith("data:image/") || value.startsWith("http://") || value.startsWith("https://") || value.startsWith("/")) {
-    return value;
+  if (value.startsWith("data:image/")) return value;
+  if (value.startsWith("https://") || value.startsWith("http://")) {
+    return /localhost|127\.0\.0\.1/i.test(value) ? "" : value;
   }
+  if (/^\/(media|uploads|images|products)\//.test(value)) return value;
   return "";
 }
 

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useLanguage } from "@/context/LanguageContext";
-import { getColorLabel, hexFromColorName, type ProductColor } from "@/lib/utils";
+import { getColorLabel, hexFromColorName, isStorefrontImageUrl, type ProductColor } from "@/lib/utils";
 import { t } from "@/lib/i18n";
 
 type ColorSwatchesProps = {
@@ -37,8 +37,8 @@ export function ColorSwatches({ colors, selected, onSelect, size = "md" }: Color
                 : "border-[#a07d3e]/25 hover:border-[#c9a86c]/60"
             }`}
           >
-            {color.image ? (
-              <Image src={color.image} alt={getColorLabel(color, lang)} fill className="object-cover" sizes="56px" unoptimized={color.image.startsWith("data:")} />
+            {isStorefrontImageUrl(color.image) ? (
+              <Image src={color.image!} alt={getColorLabel(color, lang)} fill className="object-cover" sizes="56px" unoptimized={color.image!.startsWith("data:")} />
             ) : (
               <span
                 className="absolute inset-0"

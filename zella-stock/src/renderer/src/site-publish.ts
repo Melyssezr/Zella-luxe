@@ -11,18 +11,49 @@ function syncKey() {
   return (loadSettings().siteKey?.trim() || import.meta.env.VITE_ZELLA_STOCK_KEY || "zella-stock-dev") as string;
 }
 
-function usableImage(src?: string) {
-  const value = src?.trim() ?? "";
-  if (!value) return "";
-  if (value.startsWith("data:image/") || value.startsWith("http://") || value.startsWith("https://") || value.startsWith("/")) {
-    return value;
-  }
-  return "";
+function fetchAsDataUrl(url: string) {
+  return fetch(url)
+    .then((res) => {
+      if (!res.ok) throw new Error("image");
+      return res.blob();
+    })
+    .then(
+      (blob) =>
+        new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result ?? ""));
+          reader.onerror = () => reject(reader.error);
+          reader.readAsDataURL(blob);
+        })
+    );
 }
 
-function compactImage(src?: string) {
-  const value = usableImage(src);
-  if (!value.startsWith("data:image/")) return Promise.resolve(value);
+function isRemoteSiteImage(value: string) {
+  if (value.startsWith("https://") || value.startsWith("http://")) {
+    return !/localhost|127\.0\.0\.1/i.test(value);
+  }
+  return /^\/(media|uploads|images|products)\//.test(value);
+}
+
+async function resolveImage(src?: string) {
+  const value = src?.trim() ?? "";
+  if (!value || value.startsWith("blob:")) return "";
+  if (value.startsWith("data:image/")) return compactJpeg(value);
+  if (isRemoteSiteImage(value)) return value;
+  const localUrl =
+    value.startsWith("http://") || value.startsWith("https://") || value.startsWith("/")
+      ? new URL(value, window.location.origin).toString()
+      : "";
+  if (!localUrl) return "";
+  try {
+    return await compactJpeg(await fetchAsDataUrl(localUrl));
+  } catch {
+    return "";
+  }
+}
+
+function compactJpeg(src: string) {
+  if (!src.startsWith("data:image/")) return Promise.resolve(src);
   return new Promise<string>((resolve) => {
     const image = new Image();
     image.onload = () => {
@@ -35,14 +66,14 @@ function compactImage(src?: string) {
       canvas.height = height;
       const ctx = canvas.getContext("2d");
       if (!ctx) {
-        resolve(value);
+        resolve(src);
         return;
       }
       ctx.drawImage(image, 0, 0, width, height);
       resolve(canvas.toDataURL("image/jpeg", 0.82));
     };
-    image.onerror = () => resolve(value);
-    image.src = value;
+    image.onerror = () => resolve(src);
+    image.src = src;
   });
 }
 
@@ -56,7 +87,7 @@ async function payload(product: CatalogProduct) {
       nameFr: name,
       nameAr: info?.nameAr || name,
       hex: resolveColorHex(info?.hex, name),
-      photo: await compactImage(info?.photo || (index === 0 ? product.photo : "")),
+      photo: await resolveImage(info?.photo),
       sizes: product.variants
         .filter((row) => row.color === name)
         .map((row) => ({ size: row.size, qty: row.qty })),
@@ -64,7 +95,7 @@ async function payload(product: CatalogProduct) {
   }));
 
   const ready = colors.filter((row) => row.sizes.length > 0);
-  const mainPhoto = await compactImage(product.photo);
+  const mainPhoto = await resolveImage(product.photo);
   const images = [mainPhoto, ...ready.map((row) => row.photo)].filter(Boolean);
 
   return {

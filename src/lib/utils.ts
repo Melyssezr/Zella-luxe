@@ -156,7 +156,7 @@ export function parseJsonColors(value: string): ColorEntry[] {
     return parsed.map((item) => ({
       nameFr: String(item?.nameFr ?? ""),
       nameAr: String(item?.nameAr ?? item?.nameFr ?? ""),
-      image: item?.image ? String(item.image) : undefined,
+      image: item?.image && isStorefrontImageUrl(String(item.image)) ? String(item.image) : undefined,
       hex: resolveColorHex(item?.hex ? String(item.hex) : undefined, String(item?.nameFr ?? "")),
     }));
   } catch {
@@ -168,11 +168,26 @@ export function getColorLabel(color: ColorEntry, lang: "fr" | "ar"): string {
   return lang === "fr" ? color.nameFr : color.nameAr;
 }
 
+export function isStorefrontImageUrl(src?: string) {
+  const value = src?.trim() ?? "";
+  if (!value || value.startsWith("blob:") || value.includes("/src/") || value.includes("/@fs/")) {
+    return false;
+  }
+  if (value.startsWith("data:image/")) return true;
+  if (value.startsWith("https://") || value.startsWith("http://")) {
+    return !/localhost|127\.0\.0\.1/i.test(value);
+  }
+  return /^\/(media|uploads|images|products|placeholder)/.test(value);
+}
+
 export function getProductImages(images: string, colors?: string): string[] {
   const colorList = parseJsonColors(colors ?? "[]");
-  const fallbackImages = parseJsonArray(images);
+  const fallbackImages = parseJsonArray(images).filter(isStorefrontImageUrl);
   if (colorList.length > 0) {
-    return colorList.map((c) => c.image || fallbackImages[0] || "");
+    const fromColors = colorList
+      .map((c) => (isStorefrontImageUrl(c.image) ? c.image : "") || fallbackImages[0] || "")
+      .filter(Boolean);
+    if (fromColors.length > 0) return fromColors;
   }
   return fallbackImages;
 }

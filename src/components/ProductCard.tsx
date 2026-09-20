@@ -18,6 +18,7 @@ import {
   getPromoDiscountPercent,
   getProductImages,
   isNewProduct,
+  isStorefrontImageUrl,
 } from "@/lib/utils";
 import {
   allSizesShareSamePrice,
@@ -83,7 +84,10 @@ export function ProductCard({
     : parseJsonColors(colors);
   const imageList = getProductImages(images, colors);
   const sizeList = sizeLabels(variantList);
-  const displayImage = colorList[0]?.image || imageList[0] || "/placeholder.svg";
+  const displayImage =
+    (isStorefrontImageUrl(colorList[0]?.image) ? colorList[0].image : "") ||
+    imageList[0] ||
+    "/placeholder.svg";
   const firstColor = variantList.colors[0];
   const firstSize = firstColor?.sizes[0];
   const needsVariantSelection =

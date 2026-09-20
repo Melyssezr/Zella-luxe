@@ -13,6 +13,7 @@ import {
   categoryLabel,
   getPromoDiscountPercent,
   getProductImages,
+  isStorefrontImageUrl,
 } from "@/lib/utils";
 import {
   getEffectiveSizePrice,
@@ -91,7 +92,7 @@ export function ProductDetailClient({
 
   const galleryImages = getProductImages(product.images, product.colors ?? "[]");
   const displayImage =
-    selectedColorEntry?.image ||
+    (isStorefrontImageUrl(selectedColorEntry?.image) ? selectedColorEntry.image : "") ||
     galleryImages[selectedColor] ||
     galleryImages[0] ||
     "/placeholder.svg";

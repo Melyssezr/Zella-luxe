@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Facture — Twinspire Dev · Zella Luxe</title>
+  <style>
+    @page { size: A4; margin: 9mm; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      color: #1a1a22;
+      background: #fff;
+      line-height: 1.35;
+      font-size: 10.5px;
+    }
+    .sheet {
+      position: relative;
+      width: 192mm;
+      min-height: 277mm;
+      max-height: 277mm;
+      margin: 0 auto;
+      padding: 0;
+      overflow: hidden;
+    }
+    .content {
+      position: relative;
+      z-index: 1;
+    }
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
+      padding-bottom: 10px;
+      margin-bottom: 10px;
+      border-bottom: 2px solid #1a1a22;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand img.logo {
+      width: 58px;
+      height: 58px;
+      object-fit: contain;
+      border-radius: 6px;
+      background: #0a0a0d;
+    }
+    .brand-text .doc-type {
+      margin: 0;
+      font-size: 9px;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+      color: #666;
+      font-weight: 600;
+    }
+    .brand-text .company {
+      margin: 2px 0 0;
+      font-size: 17px;
+      font-weight: 800;
+      color: #1a1a22;
+    }
+    .brand-text .tagline {
+      margin-top: 1px;
+      font-size: 9px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: #7b2ff7;
+      font-weight: 600;
+    }
+    .meta {
+      text-align: right;
+      font-size: 10px;
+      color: #444;
+      line-height: 1.45;
+    }
+    .meta .invoice-no {
+      font-size: 13px;
+      font-weight: 700;
+      color: #1a1a22;
+      margin-bottom: 3px;
+    }
+    .parties {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+    .box {
+      border: 1px solid #ddd;
+      padding: 8px 10px;
+    }
+    .box h2 {
+      margin: 0 0 5px;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: .14em;
+      color: #7b2ff7;
+      font-weight: 700;
+    }
+    .box p { margin: 0; color: #333; line-height: 1.45; }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 8px;
+    }
+    thead th {
+      text-align: left;
+      font-size: 8.5px;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: #fff;
+      background: #1a1a22;
+      padding: 6px 6px;
+      font-weight: 600;
+    }
+    thead th.num { text-align: right; }
+    tbody td {
+      padding: 5px 6px;
+      border-bottom: 1px solid #e8e8e8;
+      vertical-align: top;
+    }
+    tbody tr:nth-child(even) { background: rgba(250,250,252,.85); }
+    td.num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+    td .desc {
+      display: block;
+      margin-top: 1px;
+      font-size: 9px;
+      color: #777;
+      line-height: 1.3;
+    }
+    .bottom {
+      display: grid;
+      grid-template-columns: 1fr 250px;
+      gap: 12px;
+      align-items: start;
+      margin-top: 4px;
+    }
+    .inclus h3 {
+      margin: 0 0 4px;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: .12em;
+      color: #7b2ff7;
+      font-weight: 700;
+    }
+    .inclus ul {
+      margin: 0;
+      padding-left: 14px;
+      font-size: 9.5px;
+      color: #555;
+    }
+    .inclus li { margin-bottom: 2px; }
+    .totals {
+      border: 1px solid #ddd;
+    }
+    .totals .row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 10px;
+      font-size: 11px;
+      border-bottom: 1px solid #eee;
+    }
+    .totals .grand {
+      background: #1a1a22;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      padding: 8px 10px;
+      border-bottom: none;
+    }
+    .totals .grand span:last-child { color: #c4b5fd; }
+    .sign {
+      display: flex;
+      justify-content: space-between;
+      gap: 28px;
+      margin-top: 16px;
+    }
+    .sign .slot {
+      flex: 1;
+      border-top: 1px solid #bbb;
+      padding-top: 5px;
+      font-size: 9.5px;
+      color: #666;
+      min-height: 42px;
+    }
+    .footer-line {
+      margin-top: 12px;
+      padding-top: 6px;
+      border-top: 1px solid #eee;
+      text-align: center;
+      font-size: 9px;
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+  <div class="sheet">
+    <div class="content">
+      <div class="top">
+        <div class="brand">
+          <img class="logo" src="facture-assets/twinspire-logo.jpg" alt="Twinspire Dev" />
+          <div class="brand-text">
+            <p class="doc-type">Facture</p>
+            <div class="company">Twinspire Dev</div>
+            <div class="tagline">Inspire · Build · Deliver</div>
+          </div>
+        </div>
+        <div class="meta">
+          <div class="invoice-no">N° FAC-ZL-2026-001</div>
+          Date : 26 / 07 / 2026<br />
+          Devise : DA · Statut : À régler
+        </div>
+      </div>
+
+      <div class="parties">
+        <div class="box">
+          <h2>Émetteur</h2>
+          <p>
+            <strong>Twinspire Dev</strong><br />
+            Développement web &amp; e-commerce<br />
+            Équipe : 2 développeurs<br />
+            Annaba, Algérie<br />
+            Instagram : <strong>@Twinspiredev</strong>
+          </p>
+        </div>
+        <div class="box">
+          <h2>Client</h2>
+          <p>
+            <strong>Zella Luxe</strong><br />
+            Boutique mode &amp; accessoires femme<br />
+            Annaba / Guelma — Algérie<br />
+            Domaine : <strong>zellaluxe.net</strong>
+          </p>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width:7%">N°</th>
+            <th>Désignation</th>
+            <th class="num" style="width:9%">Qté</th>
+            <th class="num" style="width:15%">P.U. (DA)</th>
+            <th class="num" style="width:16%">Montant (DA)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>01</td>
+            <td>
+              Design du site
+              <span class="desc">Mise en page boutique, responsive PC / mobile</span>
+            </td>
+            <td class="num">1</td>
+            <td class="num">20 000</td>
+            <td class="num">20 000</td>
+          </tr>
+          <tr>
+            <td>02</td>
+            <td>
+              Boutique en ligne
+              <span class="desc">Catalogue, produits, panier, favoris, promotions, avis, galerie, contact</span>
+            </td>
+            <td class="num">1</td>
+            <td class="num">28 000</td>
+            <td class="num">28 000</td>
+          </tr>
+          <tr>
+            <td>03</td>
+            <td>
+              Commande à la livraison (COD)
+              <span class="desc">Formulaire de commande et suivi dans l’administration</span>
+            </td>
+            <td class="num">1</td>
+            <td class="num">10 000</td>
+            <td class="num">10 000</td>
+          </tr>
+          <tr>
+            <td>04</td>
+            <td>
+              Espace administration
+              <span class="desc">Produits, catégories, commandes, promotions, galerie</span>
+            </td>
+            <td class="num">1</td>
+            <td class="num">22 000</td>
+            <td class="num">22 000</td>
+          </tr>
+          <tr>
+            <td>05</td>
+            <td>
+              Site français / arabe
+              <span class="desc">Interface bilingue FR &amp; AR</span>
+            </td>
+            <td class="num">1</td>
+            <td class="num">8 000</td>
+            <td class="num">8 000</td>
+          </tr>
+          <tr>
+            <td>06</td>
+            <td>
+              Module livraison (wilayas)
+              <span class="desc">Tarifs domicile / bureau selon wilaya</span>
+            </td>
+            <td class="num">1</td>
+            <td class="num">8 000</td>
+            <td class="num">8 000</td>
+          </tr>
+          <tr>
+            <td>07</td>
+            <td>
+              Nom de domaine zellaluxe.net
+              <span class="desc">Enregistrement pour une durée d’une (1) année</span>
+            </td>
+            <td class="num">1</td>
+            <td class="num">10 000</td>
+            <td class="num">10 000</td>
+          </tr>
+          <tr>
+            <td>08</td>
+            <td>
+              Notifications commandes (Telegram Bot / WhatsApp Meta)
+              <span class="desc">Alerte automatique à chaque nouvelle commande reçue sur le site (admin)</span>
+            </td>
+            <td class="num">1</td>
+            <td class="num">14 000</td>
+            <td class="num">14 000</td>
+          </tr>
+          <tr>
+            <td>09</td>
+            <td>
+              Intégration API World Express
+              <span class="desc">Synchronisation auto des commandes · génération des bons d’expédition · automatisation des expéditions · connexion transporteur World Express · création automatique des expéditions</span>
+            </td>
+            <td class="num">1</td>
+            <td class="num">40 000</td>
+            <td class="num">40 000</td>
+          </tr>
+          <tr>
+            <td>10</td>
+            <td>
+              Mise en ligne
+              <span class="desc">Hébergement, base de données, gestion des photos produits</span>
+            </td>
+            <td class="num">1</td>
+            <td class="num">10 000</td>
+            <td class="num">10 000</td>
+          </tr>
+          <tr>
+            <td>11</td>
+            <td>
+              Tests &amp; formation
+              <span class="desc">Prise en main : produits, commandes et outils connectés</span>
+            </td>
+            <td class="num">1</td>
+            <td class="num">10 000</td>
+            <td class="num">10 000</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="bottom">
+        <div class="inclus">
+          <h3>Inclus dans la prestation</h3>
+          <ul>
+            <li>Site e-commerce + espace d’administration</li>
+            <li>Domaine zellaluxe.net (1 an)</li>
+            <li>Notifications Telegram Bot ou WhatsApp Meta</li>
+            <li>Intégration API World Express</li>
+            <li>Formation de base</li>
+            <li>Corrections bugs : selon demande</li>
+          </ul>
+        </div>
+        <div class="totals">
+          <div class="row"><span>Sous-total</span><span>180 000 DA</span></div>
+          <div class="row"><span>TVA</span><span>Selon régime fiscal</span></div>
+          <div class="row grand"><span>Total à payer</span><span>180 000 DA</span></div>
+        </div>
+      </div>
+
+      <div class="sign">
+        <div class="slot">
+          <strong>Twinspire Dev</strong><br />
+          Signature &amp; cachet — Bon pour accord
+        </div>
+        <div class="slot">
+          <strong>Zella Luxe</strong><br />
+          Signature du client — Lu et approuvé
+        </div>
+      </div>
+
+      <div class="footer-line">
+        Twinspire Dev — Annaba, Algérie — Instagram @Twinspiredev
+      </div>
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,155 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id            String   @id @default(cuid())
+  slug          String   @unique
+  nameFr        String
+  nameAr        String
+  descriptionFr String
+  descriptionAr String
+  /** Admin-only product reference (shared across all colors). Never shown on the storefront. */
+  reference     String?
+  price         Float
+  promoPrice    Float?
+  onPromo       Boolean  @default(false)
+  category      String
+  images        String   @default("[]")
+  colors        String   @default("[]")
+  sizes         String   @default("[]")
+  /** Color → sizes[{size, stock}]. Prices in sizePrices. Source of truth for variants. */
+  variants      String   @default("[]")
+  stock         Int      @default(0)
+  viewCount     Int      @default(0)
+  featured      Boolean  @default(false)
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  reviews       Review[]
+}
+
+model Order {
+  id                 String   @id @default(cuid())
+  orderNumber        String   @unique
+  customerName       String
+  firstName          String   @default("")
+  lastName           String   @default("")
+  phone              String
+  email              String?
+  address            String
+  wilayaCode         String   @default("")
+  wilayaName         String   @default("")
+  deliveryMethod     String   @default("HOME")
+  deliveryAddress    String?
+  deliveryOfficeId   String?
+  deliveryOfficeName String?
+  /** Commune (requis pour World Express / Ecotrack). */
+  commune            String   @default("")
+  instagramHandle    String?
+  items              String
+  subtotal           Float    @default(0)
+  shippingCost       Float    @default(0)
+  total              Float
+  status             String   @default("PENDING")
+  /** Nouveau flux : stock géré lors des changements de statut admin. */
+  stockManaged       Boolean  @default(false)
+  /** Vrai lorsque les articles de cette commande ont été retirés du stock. */
+  stockDeducted      Boolean  @default(false)
+  notes              String?
+  /** N° suivi World Express / Ecotrack */
+  trackingNumber     String?
+  shippingProvider   String?
+  shippingError      String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+model Wilaya {
+  id                  String           @id @default(cuid())
+  code                String           @unique
+  nameFr              String
+  nameAr              String
+  homeShippingPrice   Float            @default(600)
+  officeShippingPrice Float            @default(400)
+  active              Boolean          @default(true)
+  offices             DeliveryOffice[]
+}
+
+model DeliveryOffice {
+  id          String  @id @default(cuid())
+  wilayaId    String
+  wilaya      Wilaya  @relation(fields: [wilayaId], references: [id], onDelete: Cascade)
+  nameFr      String
+  nameAr      String
+  /** Code station Ecotrack / World Express (stop-desk) */
+  stationCode String?
+  address     String?
+  active      Boolean @default(true)
+}
+
+model GalleryImage {
+  id        String   @id @default(cuid())
+  url       String
+  captionFr String?
+  captionAr String?
+  sortOrder Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model ContactMessage {
+  id              String   @id @default(cuid())
+  name            String
+  instagramHandle String?
+  phone           String?
+  message         String
+  read            Boolean  @default(false)
+  createdAt       DateTime @default(now())
+}
+
+model Review {
+  id              String   @id @default(cuid())
+  customerName    String
+  instagramHandle String?
+  phone           String?
+  productId    String?
+  product      Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
+  message      String
+  rating       Int
+  photos       String   @default("[]")
+  status       String   @default("PENDING")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Catalog {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  nameFr      String
+  nameAr      String
+  coverImage  String   @default("")
+  accentColor String   @default("#c9a86c")
+  sortOrder   Int      @default(0)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model SiteSettings {
+  id           Int    @id @default(1)
+  instagramUrl String @default("")
+  facebookUrl  String @default("")
+  tiktokUrl    String @default("")
+  whatsapp     String @default("")
+  phone        String @default("")
+  email        String @default("contact@zellaluxe.dz")
+  addressFr    String @default("Algérie")
+  addressAr    String @default("الجزائر")
+}

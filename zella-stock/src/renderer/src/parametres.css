@@ -1,0 +1,140 @@
+.params-page {
+  --wine: #65232b;
+  --gold: #c9a86c;
+  --ink: #2c2118;
+  --mute: #7a7068;
+  display: grid;
+  gap: 16px;
+  align-content: start;
+  min-height: 100%;
+  padding: 18px 24px 28px;
+  color: var(--ink);
+}
+
+.params-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.params-head h1 {
+  margin: 0;
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 40px;
+  font-weight: 600;
+  color: var(--wine);
+}
+
+.params-head h1::after {
+  content: "";
+  display: block;
+  width: 56px;
+  height: 1.5px;
+  margin-top: 8px;
+  background: linear-gradient(90deg, #c9a86c, rgba(201, 168, 108, 0.15));
+}
+
+.params-head p {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--mute);
+}
+
+.params-status {
+  font-size: 13px;
+  font-weight: 600;
+  color: #6a8f78;
+}
+
+.params-box {
+  padding: 18px 20px 20px;
+  border-radius: 20px;
+  background: rgba(255, 253, 248, 0.86);
+  border: 1px solid rgba(201, 168, 108, 0.32);
+  box-shadow: 0 10px 24px rgba(44, 38, 35, 0.05);
+}
+
+.params-box h2 {
+  margin: 0 0 14px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.params-hint {
+  margin: -6px 0 14px;
+  font-size: 13px;
+  color: #5c534c;
+}
+
+.params-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 16px;
+}
+
+.params-grid label {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--mute);
+}
+
+.params-grid label.wide { grid-column: 1 / -1; }
+
+.params-grid input {
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(180, 166, 148, 0.45);
+  background: #fff;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 500;
+  outline: none;
+}
+
+.params-grid input:focus {
+  border-color: #c9a86c;
+  box-shadow: 0 0 0 3px rgba(201, 168, 108, 0.18);
+}
+
+.params-grid input:read-only {
+  background: #f6f1e8;
+  color: #5c534c;
+}
+
+.params-actions {
+  display: flex;
+  gap: 10px;
+}
+
+.params-save,
+.params-ghost {
+  min-height: 42px;
+  padding: 0 22px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.params-save {
+  border: 0;
+  color: #fff8f0;
+  background: #65232b;
+}
+
+.params-ghost {
+  border: 1px solid rgba(180, 166, 148, 0.55);
+  background: rgba(255, 253, 248, 0.86);
+  color: var(--ink);
+}
+
+@media (max-width: 720px) {
+  .params-grid { grid-template-columns: 1fr; }
+  .params-grid label.wide { grid-column: auto; }
+}

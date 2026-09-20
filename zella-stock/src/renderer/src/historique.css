@@ -1,0 +1,229 @@
+.histo-page {
+  --wine: #65232b;
+  --gold: #c9a86c;
+  --ink: #2c2623;
+  --mute: #8a8078;
+  display: grid;
+  gap: 14px;
+  min-height: 100%;
+  padding: 18px 24px 28px;
+  color: var(--ink);
+}
+
+.histo-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.histo-head h1 {
+  margin: 0;
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 40px;
+  font-weight: 600;
+  color: #b08a4a;
+}
+
+.histo-head h1::after {
+  content: "";
+  display: block;
+  width: 56px;
+  height: 1.5px;
+  margin-top: 8px;
+  background: linear-gradient(90deg, #c9a86c, rgba(201, 168, 108, 0.15));
+}
+
+.histo-head p {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--mute);
+}
+
+.histo-tools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.histo-search,
+.histo-date {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(201, 168, 108, 0.42);
+  background: rgba(255, 253, 248, 0.78);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.histo-search { width: min(340px, 46vw); }
+
+.histo-search svg,
+.histo-date svg {
+  width: 16px;
+  height: 16px;
+  color: var(--mute);
+  flex-shrink: 0;
+}
+
+.histo-search input,
+.histo-date input {
+  border: 0;
+  background: transparent;
+  outline: none;
+  font: inherit;
+  color: var(--ink);
+}
+
+.histo-search input { width: 100%; }
+.histo-date input { min-width: 132px; color-scheme: light; }
+
+.histo-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.histo-filters button {
+  min-height: 32px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(201, 168, 108, 0.4);
+  background: rgba(255, 253, 248, 0.7);
+  color: var(--mute);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.histo-filters button.on {
+  background: linear-gradient(105deg, #65232b, #8f454e);
+  border-color: transparent;
+  color: #fff8f0;
+}
+
+.histo-card {
+  border-radius: 22px;
+  background: rgba(255, 253, 248, 0.8);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(201, 168, 108, 0.32);
+  box-shadow: 0 14px 32px rgba(44, 38, 35, 0.06);
+  overflow: hidden;
+}
+
+.histo-table-wrap { overflow: auto; }
+
+.histo-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.histo-table th {
+  text-align: left;
+  padding: 16px 16px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #b08a4a;
+  white-space: nowrap;
+}
+
+.histo-table th svg {
+  width: 13px;
+  height: 13px;
+  margin-right: 6px;
+  vertical-align: -2px;
+}
+
+.histo-table td {
+  padding: 13px 16px;
+  font-size: 14px;
+  border-top: 1px solid rgba(201, 168, 108, 0.2);
+  vertical-align: middle;
+}
+
+.histo-ref {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.03em;
+  color: #6f6560;
+}
+
+.histo-type {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 600;
+}
+
+.histo-type.entree {
+  background: #e7eee8;
+  color: #4f6d57;
+  box-shadow: 0 0 10px rgba(106, 143, 120, 0.28);
+}
+
+.histo-type.sortie {
+  background: #f6e4e4;
+  color: #9a3d44;
+  box-shadow: 0 0 10px rgba(163, 58, 66, 0.22);
+}
+
+.histo-type.inventaire {
+  background: #f6ead0;
+  color: #9a7536;
+  box-shadow: 0 0 10px rgba(201, 168, 108, 0.35);
+}
+
+.histo-type.retour {
+  background: #efe8f4;
+  color: #6e4a78;
+  box-shadow: 0 0 10px rgba(110, 74, 120, 0.22);
+}
+
+.histo-table b.plus { color: #4f6d57; }
+.histo-table b.minus { color: #9a3d44; }
+
+.histo-who {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 0 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.histo-who.gold {
+  background: linear-gradient(105deg, #a07d3e, #c9a86c);
+  color: #fff8f0;
+}
+
+.histo-who.outline {
+  background: #fff;
+  border: 1px solid #c9a86c;
+  color: #9a7536;
+}
+
+.histo-empty {
+  margin: 0;
+  padding: 42px 16px;
+  text-align: center;
+  color: var(--mute);
+}
+
+@media (max-width: 980px) {
+  .histo-head { flex-wrap: wrap; align-items: start; }
+  .histo-search { width: 100%; }
+}

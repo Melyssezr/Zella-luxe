@@ -1,0 +1,84 @@
+@import "@fontsource/jost/400.css";
+@import "@fontsource/jost/500.css";
+@import "@fontsource/jost/600.css";
+@import "@fontsource/jost/700.css";
+@import "@fontsource/playfair-display/400.css";
+@import "@fontsource/playfair-display/500.css";
+@import "@fontsource/playfair-display/500-italic.css";
+@import "@fontsource/playfair-display/600.css";
+@import "@fontsource/playfair-display/600-italic.css";
+@import "@fontsource/playfair-display/700.css";
+@import "./login.css";
+@import "./dashboard.css";
+@import "./stock.css";
+@import "./add-product.css";
+@import "./entree.css";
+@import "./sortie.css";
+@import "./alertes.css";
+@import "./historique.css";
+@import "./inventaire.css";
+@import "./valorisation.css";
+@import "./parametres.css";
+
+:root {
+  --chrome: #65232B;
+  --chrome-h: 32px;
+  --cream: #f4eee4;
+  --paper: #fbf8f2;
+  --card: #fffcf7;
+  --line: #eadfce;
+  --gold: #c9a86c;
+  --gold-deep: #9a7536;
+  --text: #2c2118;
+  --muted: #8d7d6e;
+  --warn: #b05a4a;
+  --ok: #5d7a4a;
+  --radius: 14px;
+  --shadow: 0 10px 28px rgba(61, 43, 31, 0.06);
+  --sans: "Jost", system-ui, sans-serif;
+  --display: "Playfair Display", Georgia, serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  position: relative;
+  font-family: var(--sans);
+  color: var(--text);
+  background: var(--cream);
+}
+
+.window-caption {
+  position: fixed;
+  top: env(titlebar-area-y, 0px);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  height: env(titlebar-area-height, var(--chrome-h));
+  display: flex;
+  align-items: center;
+  background: var(--chrome);
+  color: #fff8f0;
+  -webkit-app-region: drag;
+  app-region: drag;
+  user-select: none;
+}
+
+.window-caption span {
+  margin: 0;
+  padding: 0 14px;
+  max-width: env(titlebar-area-width, calc(100% - 138px));
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+button, input { font: inherit; color: inherit; }
+

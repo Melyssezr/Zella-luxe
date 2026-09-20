@@ -1,0 +1,217 @@
+.inv-page {
+  --wine: #65232b;
+  --gold: #c9a86c;
+  --ink: #2c2623;
+  --mute: #8a8078;
+  display: grid;
+  gap: 16px;
+  min-height: 100%;
+  padding: 18px 24px 28px;
+  color: var(--ink);
+}
+
+.inv-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.inv-head h1 {
+  margin: 0;
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 40px;
+  font-weight: 600;
+  color: var(--wine);
+}
+
+.inv-head h1::after {
+  content: "";
+  display: block;
+  width: 56px;
+  height: 1.5px;
+  margin-top: 8px;
+  background: linear-gradient(90deg, #c9a86c, rgba(201, 168, 108, 0.15));
+}
+
+.inv-head p {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--mute);
+}
+
+.inv-tools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.inv-search,
+.inv-cat {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(201, 168, 108, 0.42);
+  background: rgba(255, 253, 248, 0.78);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.inv-search { width: min(280px, 40vw); }
+
+.inv-search svg {
+  width: 16px;
+  height: 16px;
+  color: var(--mute);
+  flex-shrink: 0;
+}
+
+.inv-search input,
+.inv-cat select {
+  border: 0;
+  background: transparent;
+  outline: none;
+  font: inherit;
+  color: var(--ink);
+}
+
+.inv-search input { width: 100%; }
+
+.inv-cat span {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mute);
+  white-space: nowrap;
+}
+
+.inv-card {
+  border-radius: 22px;
+  background: rgba(255, 253, 248, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(201, 168, 108, 0.32);
+  box-shadow: 0 14px 32px rgba(44, 38, 35, 0.06);
+  overflow: hidden;
+}
+
+.inv-table-wrap { overflow: auto; }
+
+.inv-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.inv-table th {
+  text-align: left;
+  padding: 16px 16px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #b08a4a;
+}
+
+.inv-table td {
+  padding: 12px 16px;
+  font-size: 14px;
+  border-top: 1px solid rgba(201, 168, 108, 0.2);
+  vertical-align: middle;
+}
+
+.inv-product {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.inv-product img {
+  width: 42px;
+  height: 42px;
+  object-fit: cover;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 0 0 1px rgba(201, 168, 108, 0.28);
+}
+
+.inv-product strong {
+  font-family: var(--display);
+  font-style: italic;
+  font-weight: 600;
+}
+
+.inv-table input {
+  width: 72px;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(201, 168, 108, 0.4);
+  background: #fff;
+  text-align: center;
+  outline: none;
+}
+
+.inv-table b {
+  display: inline-flex;
+  min-width: 36px;
+  justify-content: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.inv-table b.down {
+  color: #9a3d44;
+  text-shadow: 0 0 10px rgba(163, 58, 66, 0.45);
+}
+
+.inv-table b.up {
+  color: #9a7536;
+  text-shadow: 0 0 12px rgba(201, 168, 108, 0.7);
+}
+
+.inv-table b.flat { color: var(--mute); }
+
+.inv-empty,
+.inv-notice {
+  margin: 0;
+  padding: 16px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--mute);
+}
+
+.inv-notice {
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: rgba(255, 249, 242, 0.9);
+  border: 1px solid rgba(201, 168, 108, 0.4);
+  color: var(--wine);
+}
+
+.inv-submit {
+  justify-self: center;
+  min-width: min(360px, 100%);
+  min-height: 48px;
+  padding: 0 28px;
+  border: 0;
+  border-radius: 999px;
+  color: #fff8f0;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  background: linear-gradient(105deg, #a07d3e 0%, #c9a86c 48%, #e0c07a 100%);
+  box-shadow: 0 10px 22px rgba(160, 125, 62, 0.32);
+}
+
+.inv-submit:hover { filter: brightness(1.05); }
+
+@media (max-width: 900px) {
+  .inv-head { flex-wrap: wrap; }
+  .inv-search { width: 100%; }
+}

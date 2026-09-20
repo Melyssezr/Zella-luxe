@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Zella Stock — Fayssal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #f3eee6;
+      --panel: rgba(255, 252, 247, 0.82);
+      --panel-solid: #fffdf9;
+      --text: #3d2b1f;
+      --muted: #8a7664;
+      --gold: #c9a86c;
+      --gold-2: #b8956a;
+      --gold-deep: #8b6914;
+      --line: rgba(61, 43, 31, 0.1);
+      --ok: #5d8a62;
+      --ok-bg: #e8f3e9;
+      --warn: #b8860b;
+      --warn-bg: #fff3d6;
+      --danger: #b85c5c;
+      --danger-bg: #fdeaea;
+      --display: "Playfair Display", Georgia, serif;
+      --sans: "Inter", system-ui, sans-serif;
+      --shadow: 0 10px 30px rgba(61, 43, 31, 0.06);
+      --radius: 18px;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--sans);
+      color: var(--text);
+      background: var(--bg);
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse 80% 50% at 20% 0%, rgba(255,255,255,0.75), transparent 55%),
+        radial-gradient(ellipse 50% 40% at 90% 10%, rgba(201,168,108,0.22), transparent 55%),
+        linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 40%),
+        linear-gradient(180deg, #faf6ef, #f3eee6 50%, #ebe3d6);
+    }
+
+    .app {
+      position: relative;
+      z-index: 1;
+      display: grid;
+      grid-template-columns: 230px 1fr;
+      min-height: 100vh;
+    }
+    @media (max-width: 980px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+    }
+
+    /* Sidebar */
+    .sidebar {
+      padding: 22px 14px;
+      border-right: 1px solid var(--line);
+      background: rgba(247, 242, 234, 0.75);
+      backdrop-filter: blur(14px);
+      display: flex;
+      flex-direction: column;
+    }
+    .logo {
+      font-family: var(--display);
+      font-size: 18px;
+      letter-spacing: 0.14em;
+      font-weight: 600;
+      color: var(--gold-deep);
+      padding: 6px 10px 20px;
+    }
+    .nav { display: grid; gap: 2px; flex: 1; }
+    .nav button {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      border: 1px solid transparent;
+      background: transparent;
+      color: var(--muted);
+      padding: 10px 12px;
+      border-radius: 12px;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: left;
+    }
+    .nav button svg { width: 16px; height: 16px; opacity: 0.75; flex-shrink: 0; }
+    .nav button:hover { background: rgba(255,255,255,0.55); color: var(--text); }
+    .nav button.active {
+      background: linear-gradient(135deg, #e8d5a8, #c9a86c 55%, #a07d3e);
+      color: #1a130a;
+      border-color: rgba(160,125,62,0.25);
+      box-shadow: 0 6px 16px rgba(160,125,62,0.2);
+    }
+    .nav button.active svg { opacity: 1; }
+    .nav .section {
+      margin: 14px 12px 6px;
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #b5a390;
+      font-weight: 600;
+    }
+
+    .brand-card {
+      margin-top: 16px;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: linear-gradient(160deg, #fffaf2, #f0e4d0);
+      padding: 16px;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+    .brand-card .zl {
+      width: 52px; height: 52px;
+      margin: 0 auto 10px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      font-family: var(--display);
+      font-weight: 700;
+      font-size: 18px;
+      color: #fffaf2;
+      background: linear-gradient(145deg, #e4cf9a, #a07d3e);
+      box-shadow: 0 8px 18px rgba(160,125,62,0.25);
+    }
+    .brand-card strong {
+      display: block;
+      font-family: var(--display);
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .brand-card span { font-size: 11px; color: var(--muted); }
+
+    /* Main */
+    .main { padding: 18px 22px 40px; min-width: 0; }
+    .topbar {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+    .topbar h1 {
+      margin: 0;
+      font-family: var(--display);
+      font-size: 28px;
+      font-weight: 600;
+      min-width: 140px;
+    }
+    .search {
+      flex: 1;
+      min-width: 200px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,253,249,0.9);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 10px 16px;
+      box-shadow: var(--shadow);
+    }
+    .search input {
+      border: 0;
+      outline: 0;
+      background: transparent;
+      width: 100%;
+      font: inherit;
+      color: var(--text);
+    }
+    .search input::placeholder { color: #b0a090; }
+    .top-actions { display: flex; align-items: center; gap: 10px; }
+    .icon-btn {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      border: 1px solid var(--line);
+      background: rgba(255,253,249,0.9);
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .profile {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 4px 10px 4px 4px;
+      border-radius: 999px;
+      background: rgba(255,253,249,0.9);
+      border: 1px solid var(--line);
+    }
+    .avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #e4cf9a, #a07d3e);
+      color: #fff;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      font-size: 12px;
+    }
+    .profile div { line-height: 1.2; }
+    .profile strong { display: block; font-size: 13px; }
+    .profile span { font-size: 11px; color: var(--muted); }
+
+    .panel { display: none; }
+    .panel.active { display: block; animation: fade .22s ease; }
+    @keyframes fade {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    .toolbar {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--text);
+      padding: 9px 14px;
+      border-radius: 999px;
+      font: inherit;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn.primary {
+      border: 0;
+      color: #1a130a;
+      background: linear-gradient(135deg, #e8d5a8, #c9a86c 50%, #a07d3e);
+      box-shadow: 0 8px 18px rgba(160,125,62,0.22);
+    }
+    .btn:hover { filter: brightness(1.03); }
+
+    .kpis {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    @media (max-width: 900px) { .kpis { grid-template-columns: 1fr 1fr; } }
+
+    .kpi {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+    .kpi label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 500;
+      margin-bottom: 8px;
+    }
+    .kpi b {
+      font-family: var(--display);
+      font-size: 26px;
+      font-weight: 600;
+      display: block;
+    }
+    .kpi .trend {
+      margin-top: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--ok);
+    }
+    .kpi .trend.down { color: var(--danger); }
+    .spark {
+      margin-top: 10px;
+      height: 28px;
+      width: 100%;
+    }
+
+    .charts {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    @media (max-width: 900px) { .charts { grid-template-columns: 1fr; } }
+
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+    }
+    .card h2 {
+      margin: 0 0 4px;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    .card .sub {
+      margin: 0 0 14px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .area-chart {
+      height: 180px;
+      width: 100%;
+    }
+    .donut-wrap {
+      display: grid;
+      grid-template-columns: 150px 1fr;
+      gap: 12px;
+      align-items: center;
+    }
+    .donut {
+      width: 140px; height: 140px;
+      border-radius: 50%;
+      background: conic-gradient(
+        #6a4c32 0 55%,
+        #b8956a 55% 72%,
+        #c9a86c 72% 90%,
+        #e4cf9a 90% 100%
+      );
+      display: grid;
+      place-items: center;
+      position: relative;
+    }
+    .donut::after {
+      content: "";
+      width: 78px; height: 78px;
+      border-radius: 50%;
+      background: #fffdf9;
+      position: absolute;
+    }
+    .donut span {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      font-family: var(--display);
+      font-size: 18px;
+      font-weight: 600;
+      line-height: 1.1;
+    }
+    .donut small { display: block; font-family: var(--sans); font-size: 10px; color: var(--muted); font-weight: 500; }
+    .legend { display: grid; gap: 8px; font-size: 12px; }
+    .legend div { display: flex; justify-content: space-between; gap: 8px; }
+    .legend i {
+      width: 9px; height: 9px; border-radius: 50%;
+      display: inline-block; margin-right: 6px;
+    }
+
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { text-align: left; padding: 12px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+    th {
+      color: var(--muted);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      font-weight: 600;
+    }
+    tr:last-child td { border-bottom: 0; }
+    tr.clickable { cursor: pointer; }
+    tr.clickable:hover td { background: rgba(201,168,108,0.06); }
+    .prod {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+    }
+    .thumb {
+      width: 40px; height: 40px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      background:
+        radial-gradient(circle at 30% 25%, rgba(255,255,255,0.5), transparent 40%),
+        linear-gradient(145deg, #e4cf9a, #a07d3e);
+      flex-shrink: 0;
+    }
+    .thumb.heel {
+      background:
+        radial-gradient(circle at 30% 25%, rgba(255,255,255,0.45), transparent 40%),
+        linear-gradient(145deg, #d8c4a8, #8b6914);
+    }
+    .money { color: var(--gold-deep); font-weight: 700; white-space: nowrap; }
+    .badge {
+      display: inline-block;
+      padding: 4px 9px;
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 600;
+    }
+    .ok { background: var(--ok-bg); color: var(--ok); }
+    .low { background: var(--warn-bg); color: var(--warn); }
+    .out { background: var(--danger-bg); color: var(--danger); }
+
+    /* Product detail */
+    .detail-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      margin-bottom: 14px;
+    }
+    .detail-head h1 {
+      margin: 0;
+      font-family: var(--display);
+      font-size: 30px;
+      font-weight: 600;
+    }
+    .tag {
+      display: inline-block;
+      margin-left: 8px;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: #fff3d6;
+      color: var(--gold-deep);
+      font-size: 11px;
+      font-weight: 700;
+      vertical-align: middle;
+    }
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1fr 0.95fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+    @media (max-width: 1100px) { .detail-grid { grid-template-columns: 1fr; } }
+
+    .gallery .hero-img {
+      aspect-ratio: 1.15;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background:
+        radial-gradient(circle at 30% 20%, rgba(255,255,255,0.55), transparent 40%),
+        linear-gradient(160deg, #f0e0c4, #c9a86c 45%, #8b6914);
+      display: grid;
+      place-items: center;
+      color: rgba(255,250,242,0.9);
+      font-family: var(--display);
+      font-size: 28px;
+      margin-bottom: 10px;
+      box-shadow: var(--shadow);
+    }
+    .thumbs {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+    .thumbs span {
+      aspect-ratio: 1;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: linear-gradient(145deg, #efe2cc, #d4b784);
+      display: block;
+    }
+    .thumbs span.on { outline: 2px solid var(--gold); }
+
+    .info-list { display: grid; gap: 10px; font-size: 13px; }
+    .info-list div {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--line);
+    }
+    .info-list div:last-child { border-bottom: 0; }
+    .info-list span { color: var(--muted); }
+    .info-list strong { font-weight: 600; text-align: right; }
+
+    .stock-box .stat {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 13px;
+    }
+    .stock-box .stat:last-of-type { border-bottom: 0; margin-bottom: 12px; }
+    .stock-box .big {
+      font-family: var(--display);
+      font-size: 28px;
+      font-weight: 600;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 10px;
+    }
+    .tabs button {
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      padding: 8px 12px;
+      border-radius: 999px;
+      font: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .tabs button.active {
+      background: rgba(201,168,108,0.18);
+      color: var(--text);
+    }
+
+    .matrix { width: 100%; border-collapse: separate; border-spacing: 6px; font-size: 12px; }
+    .matrix th { text-align: center; border: 0; padding: 4px; background: transparent; }
+    .matrix td { border: 0; padding: 0; text-align: center; }
+    .matrix .cell {
+      display: block;
+      padding: 10px 6px;
+      border-radius: 10px;
+      background: #fff;
+      border: 1px solid var(--line);
+      font-weight: 700;
+    }
+    .matrix .cell.g { background: var(--ok-bg); color: var(--ok); }
+    .matrix .cell.y { background: var(--warn-bg); color: var(--warn); }
+    .matrix .cell.o { background: #ffe8d6; color: #c06a2d; }
+    .matrix .cell.r { background: var(--danger-bg); color: var(--danger); }
+
+    .legend-box {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .legend-box span::before {
+      content: "";
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 5px;
+    }
+    .legend-box .g::before { background: var(--ok); }
+    .legend-box .y::before { background: var(--warn); }
+    .legend-box .o::before { background: #c06a2d; }
+    .legend-box .r::before { background: var(--danger); }
+
+    .form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    @media (max-width: 700px) { .form { grid-template-columns: 1fr; } }
+    label.field { display: grid; gap: 6px; font-size: 12px; color: var(--muted); font-weight: 600; }
+    input, select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font: inherit;
+      background: #fff;
+      color: var(--text);
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--gold);
+      box-shadow: 0 0 0 3px rgba(201,168,108,0.18);
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(8px);
+      background: #3d2b1f;
+      color: #fffaf2;
+      padding: 11px 16px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 600;
+      opacity: 0;
+      transition: .2s ease;
+      pointer-events: none;
+      z-index: 50;
+      white-space: nowrap;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="logo">ZELLA LUXE</div>
+      <nav class="nav">
+        <button class="active" data-go="home">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5z"/></svg>
+          Vue d’ensemble
+        </button>
+        <button data-go="produits">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/></svg>
+          Produits
+        </button>
+        <div class="section">Stock · AC LOG</div>
+        <button data-go="stock">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M4 12h16M4 17h10"/></svg>
+          Stock
+        </button>
+        <button data-go="mouvements">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 7h11l-3-3M17 17H6l3 3"/></svg>
+          Mouvements
+        </button>
+        <button data-go="entrees">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg>
+          Entrées
+        </button>
+        <button data-go="sorties">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 12h14"/></svg>
+          Sorties
+        </button>
+        <button data-go="inventaire">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg>
+          Inventaire
+        </button>
+        <button data-go="alertes">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 9v4M12 17h.01M10.3 4.3 2.8 18a2 2 0 0 0 1.7 3h15a2 2 0 0 0 1.7-3L13.7 4.3a2 2 0 0 0-3.4 0z"/></svg>
+          Alertes / Réassort
+        </button>
+        <div class="section">Commercial</div>
+        <button data-go="fournisseurs">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 21V8l9-5 9 5v13"/><path d="M9 21v-8h6v8"/></svg>
+          Fournisseurs
+        </button>
+        <button data-go="commandes">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6h15l-1.5 9h-12z"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/></svg>
+          Commandes
+        </button>
+        <button data-go="sync">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12a8 8 0 0 1 13.5-5.5L20 4v6h-6l2.2-2.2A6 6 0 1 0 18 12"/></svg>
+          Sync site
+        </button>
+        <button data-go="rapports">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V5M10 19V9M16 19v-6M22 19H2"/></svg>
+          Rapports
+        </button>
+      </nav>
+      <div class="brand-card">
+        <div class="zl">ZL</div>
+        <strong>Zella Luxe Boutique</strong>
+        <span>Sacs &amp; chaussures</span>
+      </div>
+    </aside>
+
+    <div class="main">
+      <header class="topbar">
+        <h1 id="pageTitle">Zella Stock</h1>
+        <div class="search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#b0a090" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <input placeholder="Rechercher un produit, une référence…" />
+        </div>
+        <div class="top-actions">
+          <button class="icon-btn" onclick="toast('Notifications')">🔔</button>
+          <button class="icon-btn" onclick="toast('Paramètres')">⚙</button>
+          <div class="profile">
+            <div class="avatar">FY</div>
+            <div>
+              <strong>Fayssal</strong>
+              <span>Propriétaire · Zella Luxe</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- HOME -->
+      <section id="home" class="panel active">
+        <div class="toolbar">
+          <button class="btn" onclick="toast('Export CSV (démo)')">Exporter</button>
+          <button class="btn primary" onclick="go('produits')">+ Ajouter un article</button>
+        </div>
+        <div class="kpis">
+          <div class="kpi">
+            <label>Valeur totale du stock</label>
+            <b>2 480 000 DA</b>
+            <div class="trend">+8,6 % vs mois dernier</div>
+            <svg class="spark" viewBox="0 0 100 28" preserveAspectRatio="none"><path d="M0 22 C20 18, 30 10, 45 12 S70 20, 100 6" fill="none" stroke="#c9a86c" stroke-width="2"/><path d="M0 28 L0 22 C20 18, 30 10, 45 12 S70 20, 100 6 V28 Z" fill="url(#g1)" opacity=".35"/><defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#c9a86c"/><stop offset="1" stop-color="#c9a86c" stop-opacity="0"/></linearGradient></defs></svg>
+          </div>
+          <div class="kpi">
+            <label>Articles en stock</label>
+            <b>148</b>
+            <div class="trend">+5,2 % vs mois dernier</div>
+            <svg class="spark" viewBox="0 0 100 28" preserveAspectRatio="none"><path d="M0 18 C25 16, 40 8, 55 12 S80 20, 100 10" fill="none" stroke="#b8956a" stroke-width="2"/></svg>
+          </div>
+          <div class="kpi">
+            <label>Ruptures de stock</label>
+            <b>3</b>
+            <div class="trend down">−2 vs mois dernier</div>
+            <svg class="spark" viewBox="0 0 100 28" preserveAspectRatio="none"><path d="M0 8 C30 12, 50 20, 70 16 S90 10, 100 14" fill="none" stroke="#b85c5c" stroke-width="2"/></svg>
+          </div>
+          <div class="kpi">
+            <label>Valeur moy. par article</label>
+            <b>16 757 DA</b>
+            <div class="trend">+3,1 % vs mois dernier</div>
+            <svg class="spark" viewBox="0 0 100 28" preserveAspectRatio="none"><path d="M0 20 C20 18, 40 14, 60 16 S85 8, 100 6" fill="none" stroke="#a07d3e" stroke-width="2"/></svg>
+          </div>
+        </div>
+
+        <div class="charts">
+          <div class="card">
+            <h2>Évolution de la valeur du stock</h2>
+            <p class="sub">30 derniers jours · DA</p>
+            <svg class="area-chart" viewBox="0 0 400 160" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="area" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#c9a86c" stop-opacity="0.45"/>
+                  <stop offset="100%" stop-color="#c9a86c" stop-opacity="0"/>
+                </linearGradient>
+              </defs>
+              <path d="M0 120 C40 110, 70 90, 110 95 S170 130, 210 100 S280 40, 330 55 S380 80, 400 50 V160 H0 Z" fill="url(#area)"/>
+              <path d="M0 120 C40 110, 70 90, 110 95 S170 130, 210 100 S280 40, 330 55 S380 80, 400 50" fill="none" stroke="#a07d3e" stroke-width="2.5"/>
+            </svg>
+          </div>
+          <div class="card">
+            <h2>Répartition par catégorie</h2>
+            <p class="sub">Sacs &amp; chaussures</p>
+            <div class="donut-wrap">
+              <div class="donut"><span>2,48 M<small>DA</small></span></div>
+              <div class="legend">
+                <div><span><i style="background:#6a4c32"></i>Sacs &amp; pochettes</span><strong>54,8 %</strong></div>
+                <div><span><i style="background:#b8956a"></i>Chaussures</span><strong>28,0 %</strong></div>
+                <div><span><i style="background:#c9a86c"></i>Accessoires</span><strong>17,2 %</strong></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px">
+            <h2 style="margin:0">Aperçu des produits</h2>
+            <div style="display:flex;gap:8px">
+              <button class="btn" onclick="toast('Filtres')">Filtrer</button>
+              <button class="btn" onclick="toast('Colonnes')">Colonnes</button>
+            </div>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th>Produit</th><th>Référence</th><th>Catégorie</th><th>Stock</th>
+                <th>Valeur stock</th><th>Prix de vente</th><th>Statut</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="clickable" onclick="go('fiche')">
+                <td><div class="prod"><span class="thumb"></span>Pochette Prestige Strass</div></td>
+                <td>ZL-POC-214</td><td>Sacs</td><td>12</td>
+                <td class="money">106 800 DA</td><td class="money">8 900 DA</td>
+                <td><span class="badge ok">En stock</span></td>
+              </tr>
+              <tr class="clickable" onclick="go('fiche')">
+                <td><div class="prod"><span class="thumb heel"></span>Escarpins Plateforme</div></td>
+                <td>ZL-ESC-118</td><td>Chaussures</td><td>2</td>
+                <td class="money">23 800 DA</td><td class="money">11 900 DA</td>
+                <td><span class="badge low">Stock faible</span></td>
+              </tr>
+              <tr class="clickable" onclick="go('fiche')">
+                <td><div class="prod"><span class="thumb"></span>Sac Bourse Soirée</div></td>
+                <td>ZL-SAC-087</td><td>Sacs</td><td>0</td>
+                <td class="money">0 DA</td><td class="money">9 800 DA</td>
+                <td><span class="badge out">Rupture</span></td>
+              </tr>
+              <tr class="clickable" onclick="go('fiche')">
+                <td><div class="prod"><span class="thumb heel"></span>Sandales Crystal</div></td>
+                <td>ZL-SAN-055</td><td>Chaussures</td><td>16</td>
+                <td class="money">168 000 DA</td><td class="money">10 500 DA</td>
+                <td><span class="badge ok">En stock</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- PRODUITS -->
+      <section id="produits" class="panel">
+        <div class="toolbar">
+          <button class="btn primary" onclick="toast('Nouvel article')">+ Ajouter un article</button>
+          <button class="btn" onclick="toast('Import site')">Importer du site</button>
+        </div>
+        <div class="card">
+          <h2>Produits · sacs &amp; chaussures</h2>
+          <p class="sub">Catalogue lié à zellaluxe.net · prix en DA</p>
+          <table>
+            <thead><tr><th>Produit</th><th>Réf</th><th>Famille</th><th>Variantes</th><th>Prix</th><th>Stock</th></tr></thead>
+            <tbody>
+              <tr class="clickable" onclick="go('fiche')"><td><div class="prod"><span class="thumb"></span>Pochette Prestige Strass</div></td><td>ZL-POC-214</td><td>Sacs</td><td>3 couleurs</td><td class="money">8 900 DA</td><td>12</td></tr>
+              <tr class="clickable" onclick="go('fiche')"><td><div class="prod"><span class="thumb heel"></span>Escarpins Plateforme</div></td><td>ZL-ESC-118</td><td>Chaussures</td><td>Couleur × pointure</td><td class="money">11 900 DA</td><td>28</td></tr>
+              <tr class="clickable" onclick="go('fiche')"><td><div class="prod"><span class="thumb"></span>Mini Seau Strass</div></td><td>ZL-SAC-102</td><td>Sacs</td><td>2 couleurs</td><td class="money">7 500 DA</td><td>9</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- FICHE PRODUIT (design image 2) -->
+      <section id="fiche" class="panel">
+        <div class="detail-head">
+          <div>
+            <h1>Pochette Prestige Strass <span class="tag">NOUVEAUTÉ</span></h1>
+            <p class="sub" style="margin:6px 0 0">Réf. ZL-POC-214 · Collection Soirée</p>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn" onclick="toast('Dupliqué')">Dupliquer</button>
+            <button class="btn primary" onclick="toast('Mode édition')">Modifier</button>
+          </div>
+        </div>
+
+        <div class="detail-grid">
+          <div class="card gallery">
+            <div class="hero-img">ZL</div>
+            <div class="thumbs">
+              <span class="on"></span><span></span><span></span><span></span>
+            </div>
+          </div>
+          <div class="card">
+            <h2>Informations générales</h2>
+            <div class="info-list" style="margin-top:12px">
+              <div><span>Référence</span><strong>ZL-POC-214</strong></div>
+              <div><span>Marque</span><strong>Zella Luxe</strong></div>
+              <div><span>Collection</span><strong>Soirée</strong></div>
+              <div><span>Catégorie</span><strong>Sacs &amp; pochettes</strong></div>
+              <div><span>Fournisseur</span><strong>Import Soirée DZ</strong></div>
+              <div><span>Prix de vente</span><strong class="money">8 900 DA</strong></div>
+              <div><span>Prix d’achat</span><strong class="money">4 200 DA</strong></div>
+              <div><span>Statut</span><strong><span class="badge ok">ACTIF</span></strong></div>
+            </div>
+          </div>
+          <div class="card stock-box">
+            <h2>Gestion des stocks</h2>
+            <div class="stat"><span>Stock total</span><strong class="big">12</strong></div>
+            <div class="stat"><span>Valeur totale</span><strong class="money">106 800 DA</strong></div>
+            <div class="stat"><span>Disponible</span><strong style="color:var(--ok)">10</strong></div>
+            <div class="stat"><span>Réservé (commandes)</span><strong>2</strong></div>
+            <div class="stat"><span>Seuil d’alerte</span><strong>3</strong></div>
+            <button class="btn primary" style="width:100%;justify-content:center" onclick="go('mouvements')">Ajuster le stock</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="tabs">
+            <button class="active">Stock par variante</button>
+            <button onclick="go('mouvements')">Mouvements</button>
+            <button onclick="go('alertes')">Réassort</button>
+          </div>
+          <table class="matrix">
+            <thead>
+              <tr><th></th><th>TU</th><th>—</th><th>—</th><th>—</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th>Argenté</th>
+                <td><span class="cell g">4</span></td>
+                <td><span class="cell">—</span></td>
+                <td><span class="cell">—</span></td>
+                <td><span class="cell">—</span></td>
+              </tr>
+              <tr>
+                <th>Doré</th>
+                <td><span class="cell y">2</span></td>
+                <td><span class="cell">—</span></td>
+                <td><span class="cell">—</span></td>
+                <td><span class="cell">—</span></td>
+              </tr>
+              <tr>
+                <th>Champagne</th>
+                <td><span class="cell g">6</span></td>
+                <td><span class="cell">—</span></td>
+                <td><span class="cell">—</span></td>
+                <td><span class="cell">—</span></td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="legend-box">
+            <span class="g">&gt; 5 OK</span>
+            <span class="y">2–5 Faible</span>
+            <span class="o">&lt; 2 Critique</span>
+            <span class="r">0 Rupture</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- STOCK -->
+      <section id="stock" class="panel">
+        <div class="card">
+          <h2>Stock réel (AC LOG)</h2>
+          <p class="sub">Quantités + stock mini + valorisation DA</p>
+          <table>
+            <thead><tr><th>Article</th><th>Variante</th><th>Réel</th><th>Mini</th><th>Prix</th><th>Valeur</th><th>État</th></tr></thead>
+            <tbody>
+              <tr><td>Pochette Prestige</td><td>Doré · TU</td><td>2</td><td>3</td><td class="money">8 900 DA</td><td class="money">17 800 DA</td><td><span class="badge low">Faible</span></td></tr>
+              <tr><td>Escarpins Plateforme</td><td>Argenté · 38</td><td>0</td><td>2</td><td class="money">11 900 DA</td><td class="money">0 DA</td><td><span class="badge out">Rupture</span></td></tr>
+              <tr><td>Sandales Crystal</td><td>Doré · 37</td><td>5</td><td>2</td><td class="money">10 500 DA</td><td class="money">52 500 DA</td><td><span class="badge ok">OK</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- MOUVEMENTS -->
+      <section id="mouvements" class="panel">
+        <div class="toolbar">
+          <button class="btn primary" onclick="go('entrees')">+ Entrée</button>
+          <button class="btn" onclick="go('sorties')">+ Sortie</button>
+        </div>
+        <div class="card">
+          <h2>Mouvements de stock</h2>
+          <p class="sub">Historique entrées / sorties / inventaire</p>
+          <table>
+            <thead><tr><th>Date</th><th>Type</th><th>Article</th><th>Qté</th><th>Montant</th><th>Par</th></tr></thead>
+            <tbody>
+              <tr><td>13/08/2026</td><td><span class="badge out">Sortie</span></td><td>Pochette Prestige · Doré</td><td>−1</td><td class="money">8 900 DA</td><td>Site</td></tr>
+              <tr><td>12/08/2026</td><td><span class="badge ok">Entrée</span></td><td>Escarpins · 38</td><td>+6</td><td class="money">71 400 DA</td><td>Fayssal</td></tr>
+              <tr><td>11/08/2026</td><td><span class="badge low">Inventaire</span></td><td>Mini Seau · Noir</td><td>−1</td><td class="money">−7 500 DA</td><td>Fayssal</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ENTREES -->
+      <section id="entrees" class="panel">
+        <div class="card">
+          <h2>Entrée de stock</h2>
+          <p class="sub">Réception fournisseur · logique AC LOG</p>
+          <div class="form">
+            <label class="field">Article
+              <select><option>Pochette Prestige Strass — 8 900 DA</option><option>Escarpins Plateforme — 11 900 DA</option></select>
+            </label>
+            <label class="field">Fournisseur
+              <select><option>Import Soirée DZ</option><option>Mode Access DZ</option></select>
+            </label>
+            <label class="field">Couleur
+              <select><option>Doré</option><option>Argenté</option><option>Champagne</option></select>
+            </label>
+            <label class="field">Pointure / taille
+              <select><option>TU</option><option>37</option><option>38</option><option>39</option></select>
+            </label>
+            <label class="field">Quantité
+              <input type="number" value="6" min="1" />
+            </label>
+            <label class="field">Coût unitaire (DA)
+              <input type="number" value="4200" />
+            </label>
+          </div>
+          <div class="toolbar" style="justify-content:flex-start;margin-top:14px">
+            <button class="btn primary" onclick="toast('Entrée validée · +6 · 25 200 DA')">Valider l’entrée</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- SORTIES -->
+      <section id="sorties" class="panel">
+        <div class="card">
+          <h2>Sortie de stock</h2>
+          <p class="sub">Vente boutique, commande site, ajustement</p>
+          <div class="form">
+            <label class="field">Motif
+              <select><option>Vente boutique</option><option>Commande site</option><option>Ajustement / casse</option></select>
+            </label>
+            <label class="field">Article
+              <select><option>Pochette Prestige — 8 900 DA</option><option>Escarpins — 11 900 DA</option></select>
+            </label>
+            <label class="field">Variante
+              <select><option>Doré · TU</option><option>Argenté · 38</option></select>
+            </label>
+            <label class="field">Quantité
+              <input type="number" value="1" min="1" />
+            </label>
+          </div>
+          <div class="toolbar" style="justify-content:flex-start;margin-top:14px">
+            <button class="btn primary" onclick="toast('Sortie validée · 8 900 DA')">Valider la sortie</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- INVENTAIRE -->
+      <section id="inventaire" class="panel">
+        <div class="card">
+          <h2>Inventaire</h2>
+          <p class="sub">Comptage · écarts · régularisation (AC LOG)</p>
+          <table>
+            <thead><tr><th>Article</th><th>Prix</th><th>Théorique</th><th>Compté</th><th>Écart</th><th>Impact</th></tr></thead>
+            <tbody>
+              <tr><td>Pochette Prestige · Doré</td><td class="money">8 900 DA</td><td>2</td><td><input style="width:70px" value="2" /></td><td>0</td><td class="money">0 DA</td></tr>
+              <tr><td>Escarpins · 38</td><td class="money">11 900 DA</td><td>2</td><td><input style="width:70px" value="1" /></td><td style="color:var(--danger)">−1</td><td class="money">−11 900 DA</td></tr>
+            </tbody>
+          </table>
+          <div class="toolbar" style="justify-content:flex-start;margin-top:10px">
+            <button class="btn primary" onclick="toast('Inventaire validé')">Valider l’inventaire</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ALERTES -->
+      <section id="alertes" class="panel">
+        <div class="card">
+          <h2>Alertes &amp; suggestions de réassort</h2>
+          <p class="sub">Stock mini → quantité à commander · budget DA</p>
+          <table>
+            <thead><tr><th>Article</th><th>Stock</th><th>Mini</th><th>À commander</th><th>Budget</th><th>Priorité</th></tr></thead>
+            <tbody>
+              <tr><td>Escarpins Argenté 38</td><td>0</td><td>2</td><td>6</td><td class="money">71 400 DA</td><td><span class="badge out">Urgent</span></td></tr>
+              <tr><td>Pochette Prestige Doré</td><td>2</td><td>3</td><td>4</td><td class="money">35 600 DA</td><td><span class="badge low">Moyen</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- FOURNISSEURS -->
+      <section id="fournisseurs" class="panel">
+        <div class="card">
+          <h2>Fournisseurs</h2>
+          <p class="sub">Module commercial AC LOG</p>
+          <table>
+            <thead><tr><th>Fournisseur</th><th>Contact</th><th>Articles liés</th><th>Dernière entrée</th></tr></thead>
+            <tbody>
+              <tr><td>Import Soirée DZ</td><td>0550 XX XX XX</td><td>42</td><td>12/08/2026</td></tr>
+              <tr><td>Mode Access DZ</td><td>0770 XX XX XX</td><td>18</td><td>02/08/2026</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- COMMANDES -->
+      <section id="commandes" class="panel">
+        <div class="card">
+          <h2>Commandes</h2>
+          <p class="sub">Boutique + site — sorties liées</p>
+          <table>
+            <thead><tr><th>N°</th><th>Client</th><th>Canal</th><th>Total</th><th>Stock</th></tr></thead>
+            <tbody>
+              <tr><td>#ZL-2084</td><td>Cliente Alger</td><td>Site</td><td class="money">18 700 DA</td><td><span class="badge ok">Déduit</span></td></tr>
+              <tr><td>#ZL-2081</td><td>Cliente Oran</td><td>Boutique</td><td class="money">11 900 DA</td><td><span class="badge ok">Déduit</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- SYNC -->
+      <section id="sync" class="panel">
+        <div class="card">
+          <h2>Sync zellaluxe.net</h2>
+          <p class="sub">Module Zella — une seule vérité stock &amp; prix DA</p>
+          <p style="color:var(--muted);font-size:14px;line-height:1.55;margin:0 0 14px">
+            Commande web → sortie auto.<br />
+            Entrée / inventaire ici → stock site mis à jour.
+          </p>
+          <div class="toolbar" style="justify-content:flex-start">
+            <button class="btn primary" onclick="toast('Synchronisation OK')">Synchroniser maintenant</button>
+            <button class="btn" onclick="toast('Historique sync')">Historique</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- RAPPORTS -->
+      <section id="rapports" class="panel">
+        <div class="kpis">
+          <div class="kpi"><label>Ventes 7 jours</label><b>842 000 DA</b></div>
+          <div class="kpi"><label>Marge estimée</label><b>318 000 DA</b></div>
+          <div class="kpi"><label>Entrées période</label><b>126 000 DA</b></div>
+          <div class="kpi"><label>Écarts inventaire</label><b>−11 900 DA</b></div>
+        </div>
+        <div class="card">
+          <h2>Rapports</h2>
+          <p class="sub">Valorisation, rotations, ruptures — devise DA</p>
+          <button class="btn primary" onclick="toast('Rapport généré (démo)')">Générer un rapport</button>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+  <script>
+    const titles = {
+      home: "Zella Stock",
+      produits: "Produits",
+      fiche: "Fiche produit",
+      stock: "Stock",
+      mouvements: "Mouvements",
+      entrees: "Entrées",
+      sorties: "Sorties",
+      inventaire: "Inventaire",
+      alertes: "Alertes / Réassort",
+      fournisseurs: "Fournisseurs",
+      commandes: "Commandes",
+      sync: "Sync site",
+      rapports: "Rapports",
+    };
+
+    document.querySelectorAll(".nav button[data-go]").forEach((btn) => {
+      btn.addEventListener("click", () => go(btn.dataset.go));
+    });
+
+    function go(id) {
+      document.querySelectorAll(".panel").forEach((p) => p.classList.remove("active"));
+      document.querySelectorAll(".nav button[data-go]").forEach((b) => {
+        const map = { fiche: "produits" };
+        const activeId = map[id] || id;
+        b.classList.toggle("active", b.dataset.go === activeId);
+      });
+      document.getElementById(id)?.classList.add("active");
+      document.getElementById("pageTitle").textContent = titles[id] || "Zella Stock";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function toast(msg) {
+      const el = document.getElementById("toast");
+      el.textContent = msg;
+      el.classList.add("show");
+      clearTimeout(window.__t);
+      window.__t = setTimeout(() => el.classList.remove("show"), 2000);
+    }
+  </script>
+</body>
+</html>

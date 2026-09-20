@@ -1,0 +1,183 @@
+.valo-page {
+  --wine: #65232b;
+  --gold: #c9a86c;
+  --ink: #2c2623;
+  --mute: #8a8078;
+  display: grid;
+  gap: 16px;
+  min-height: 100%;
+  padding: 18px 24px 28px;
+  color: var(--ink);
+}
+
+.valo-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.valo-head h1 {
+  margin: 0;
+  font-family: var(--display);
+  font-style: italic;
+  font-size: 40px;
+  font-weight: 600;
+  color: var(--wine);
+}
+
+.valo-head h1::after {
+  content: "";
+  display: block;
+  width: 56px;
+  height: 1.5px;
+  margin-top: 8px;
+  background: linear-gradient(90deg, #c9a86c, rgba(201, 168, 108, 0.15));
+}
+
+.valo-head p {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--mute);
+}
+
+.valo-date {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(201, 168, 108, 0.42);
+  background: rgba(255, 253, 248, 0.78);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.valo-date svg {
+  width: 16px;
+  height: 16px;
+  color: #9a7536;
+}
+
+.valo-date input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.valo-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.valo-kpi {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 96px;
+  padding: 16px 18px;
+  border-radius: 20px;
+  background: rgba(255, 253, 248, 0.8);
+  border: 1px solid rgba(201, 168, 108, 0.32);
+  box-shadow: 0 10px 24px rgba(44, 38, 35, 0.05);
+}
+
+.valo-kpi.glow {
+  box-shadow: 0 0 0 1px rgba(201, 168, 108, 0.45), 0 12px 28px rgba(160, 125, 62, 0.22);
+}
+
+.valo-kpi-ico {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  color: #9a7536;
+  background: rgba(255, 249, 242, 0.9);
+}
+
+.valo-kpi-ico svg { width: 22px; height: 22px; }
+
+.valo-kpi p {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.valo-kpi strong {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--display);
+  font-size: 28px;
+  font-weight: 600;
+  color: #b08a4a;
+}
+
+.valo-card {
+  border-radius: 22px;
+  background: rgba(255, 253, 248, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(201, 168, 108, 0.32);
+  box-shadow: 0 14px 32px rgba(44, 38, 35, 0.06);
+  overflow: hidden;
+}
+
+.valo-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.valo-table th {
+  text-align: left;
+  padding: 16px 18px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #b08a4a;
+}
+
+.valo-table td {
+  padding: 14px 18px;
+  font-size: 14px;
+  border-top: 1px solid rgba(201, 168, 108, 0.2);
+  vertical-align: middle;
+}
+
+.valo-product {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.valo-product img {
+  width: 46px;
+  height: 46px;
+  object-fit: cover;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 0 0 1px rgba(201, 168, 108, 0.28);
+}
+
+.valo-product strong {
+  font-family: var(--display);
+  font-style: italic;
+  font-weight: 600;
+}
+
+.valo-table b { color: #b08a4a; }
+
+@media (max-width: 980px) {
+  .valo-kpis { grid-template-columns: 1fr; }
+  .valo-head { flex-wrap: wrap; }
+}

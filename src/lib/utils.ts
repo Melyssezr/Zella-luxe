@@ -126,9 +126,9 @@ export function isNewProduct(createdAt?: Date | string, days = 14): boolean {
 }
 
 /** Strip admin-only fields before sending a product to the storefront. */
-export function toStorefrontProduct<T extends { reference?: string | null }>(
+export function toStorefrontProduct<T extends object>(
   product: T
 ): Omit<T, "reference"> {
-  const { reference: _reference, ...rest } = product;
+  const { reference: _reference, ...rest } = product as T & { reference?: string | null };
   return rest;
 }

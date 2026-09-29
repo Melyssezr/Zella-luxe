@@ -46,6 +46,7 @@ type Product = {
   stock: number;
   featured: boolean;
   active: boolean;
+  inStockApp?: boolean;
 };
 
 const emptyProduct: ProductFormState = {
@@ -94,6 +95,8 @@ export default function AdminProductsClient() {
   const [useSinglePrice, setUseSinglePrice] = useState(true);
   const [editing, setEditing] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [stockLinked, setStockLinked] = useState(false);
+  const [stockBusyId, setStockBusyId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
 
   const load = async () => {
@@ -136,11 +139,13 @@ export default function AdminProductsClient() {
     setSizePrices(v.sizePrices);
     setUseSinglePrice(true);
     setEditing(null);
+    setStockLinked(false);
     setShowForm(false);
   };
 
   const openCreateForm = () => {
     setEditing(null);
+    setStockLinked(false);
     setForm({
       ...emptyProduct,
       category: validCategory ?? catalogs[0]?.slug ?? "TALONS",
@@ -155,6 +160,7 @@ export default function AdminProductsClient() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const toStock = (e.nativeEvent as SubmitEvent).submitter?.getAttribute("data-intent") === "stock";
     const variants = variantsToPayload(colorRows, sizePrices);
     if (variants.colors.length === 0) {
       alert("Ajoutez au moins une couleur avec une taille (onglet Variantes).");
@@ -181,6 +187,7 @@ export default function AdminProductsClient() {
       images: imagesToPayload(imageRows),
       variants,
       useSinglePrice,
+      ...(toStock ? { inStockApp: true } : {}),
     };
 
     try {
@@ -208,9 +215,11 @@ export default function AdminProductsClient() {
       router.replace("/admin/produits");
       await load();
       alert(
-        editing
-          ? "Produit mis à jour."
-          : `Produit enregistré.\n• Admin : liste « Tous les produits »\n• Site : Catalogue → ${catLabel || "sa catégorie"}`
+        toStock
+          ? "Produit envoyé au logiciel de stock. Ouvre Zella Luxe : il apparaît tout seul, sans le recréer. Le bouton à côté de lui est « Retirer du site »."
+          : editing
+            ? "Produit mis à jour."
+            : `Produit enregistré.\n• Admin : liste « Tous les produits »\n• Site : Catalogue → ${catLabel || "sa catégorie"}`
       );
     } catch {
       alert("Erreur réseau. Réessayez.");
@@ -238,6 +247,7 @@ export default function AdminProductsClient() {
       featured: p.featured,
       active: p.active,
     });
+    setStockLinked(Boolean(p.inStockApp));
     setImageRows(imagesFromJson(p.images ?? "[]"));
     setColorRows(v.colors);
     setSizePrices(v.sizePrices);
@@ -251,6 +261,23 @@ export default function AdminProductsClient() {
     if (product) startEdit(product);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- open once when edit param + products load
   }, [editId, products]);
+
+  const publishToStock = async (id: string) => {
+    setStockBusyId(id);
+    try {
+      const res = await fetch(`/api/products/${id}/stock`, { method: "POST" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        alert(data.error || "Impossible d’envoyer ce produit au logiciel de stock.");
+        return;
+      }
+      await load();
+    } catch {
+      alert("Erreur réseau. Réessayez.");
+    } finally {
+      setStockBusyId(null);
+    }
+  };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Supprimer ce produit ?")) return;
@@ -306,6 +333,7 @@ export default function AdminProductsClient() {
             useSinglePrice={useSinglePrice}
             onUseSinglePriceChange={setUseSinglePrice}
             editing={!!editing}
+            stockLinked={stockLinked}
             onSubmit={handleSubmit}
             onCancel={resetFormState}
           />
@@ -437,13 +465,30 @@ export default function AdminProductsClient() {
                               <Star size={11} /> Coup de cœur
                             </span>
                           )}
-                          {p.active && !p.onPromo && !p.featured && (
+                          {p.inStockApp && (
+                            <span className="admin-badge admin-badge-featured inline-flex items-center gap-0.5">
+                              Logiciel de stock
+                            </span>
+                          )}
+                          {p.active && !p.onPromo && !p.featured && !p.inStockApp && (
                             <span className="text-xs text-slate-400">—</span>
                           )}
                         </div>
                       </td>
                       <td className="px-4 py-3">
-                        <div className="flex gap-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          {p.inStockApp ? (
+                            <span className="text-xs font-medium text-[#65232B]">Dans le logiciel</span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => publishToStock(p.id)}
+                              disabled={stockBusyId === p.id}
+                              className="rounded-lg bg-[#65232B] px-2.5 py-1.5 text-xs font-medium text-white disabled:opacity-60"
+                            >
+                              {stockBusyId === p.id ? "…" : "Publier sur le logiciel"}
+                            </button>
+                          )}
                           <button
                             type="button"
                             onClick={() => startEdit(p)}

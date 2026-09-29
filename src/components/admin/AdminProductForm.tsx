@@ -50,6 +50,7 @@ type AdminProductFormProps = {
   useSinglePrice: boolean;
   onUseSinglePriceChange: (value: boolean) => void;
   editing: boolean;
+  stockLinked: boolean;
   onSubmit: (e: React.FormEvent) => void;
   onCancel: () => void;
 };
@@ -66,6 +67,7 @@ export function AdminProductForm({
   useSinglePrice,
   onUseSinglePriceChange,
   editing,
+  stockLinked,
   onSubmit,
   onCancel,
 }: AdminProductFormProps) {
@@ -279,13 +281,21 @@ export function AdminProductForm({
         )}
       </div>
 
-      <div className="flex flex-wrap gap-2 border-t border-slate-200 px-5 py-4 sm:px-6">
+      <div className="flex flex-wrap items-center gap-2 border-t border-slate-200 px-5 py-4 sm:px-6">
         <button type="submit" className="admin-btn-primary px-6 py-2.5">
           {editing ? "Mettre à jour" : "Créer le produit"}
+        </button>
+        <button type="submit" data-intent="stock" className="admin-btn-accent px-6 py-2.5">
+          {stockLinked ? "Mettre à jour dans le logiciel de stock" : "Publier sur le logiciel de stock"}
         </button>
         <button type="button" onClick={onCancel} className="admin-btn-secondary px-6 py-2.5">
           Annuler
         </button>
+        {stockLinked ? (
+          <p className="w-full text-xs text-slate-500">
+            Ce produit est déjà dans le logiciel. Le bouton à côté de lui y est « Retirer du site ».
+          </p>
+        ) : null}
       </div>
     </form>
   );

@@ -4,7 +4,7 @@ import { CACHE_TAGS, expireStorefrontCache } from "@/lib/cache-tags";
 import { sanitizeText, isAllowedImageMime, looksLikeImageBuffer } from "@/lib/security";
 import { resolveColorHex, slugify } from "@/lib/utils";
 import { uploadMediaImage } from "@/lib/media-storage";
-import { legacyFieldsFromVariants, type ProductVariantsData } from "@/lib/variants";
+import { getProductVariants, legacyFieldsFromVariants, type ProductVariantsData } from "@/lib/variants";
 
 const CATEGORY_SLUG: Record<string, string> = {
   sandales: "CHAUSSURES",
@@ -215,6 +215,7 @@ export async function publishStockProduct(body: StockPublishBody) {
     stock: legacy.stock,
     featured: Boolean(body.featured),
     active: true,
+    inStockApp: true,
   };
 
   const existing = await prisma.product.findFirst({ where: { reference } });
@@ -258,4 +259,95 @@ async function uniqueSlug(nameFr: string, reference: string) {
     slug = `${base}-${suffix++}`;
   }
   return slug;
+}
+
+function parseImages(raw: string | null | undefined) {
+  try {
+    const parsed = JSON.parse(raw || "[]") as unknown;
+    return Array.isArray(parsed) ? parsed.filter((item): item is string => typeof item === "string" && Boolean(item.trim())) : [];
+  } catch {
+    return [];
+  }
+}
+
+export type StockQtyItem = {
+  reference: string;
+  colors: Array<{
+    nameFr: string;
+    sizes: Array<{ size: string; qty: number }>;
+  }>;
+};
+
+export async function pullStockCatalog() {
+  const products = await prisma.product.findMany({ orderBy: { updatedAt: "desc" } });
+  return jsonWithCors({
+    at: Date.now(),
+    products: products
+      .filter((item) => item.reference?.trim())
+      .map((item) => {
+        const variants = getProductVariants(item);
+        const images = parseImages(item.images);
+        return {
+          id: item.id,
+          reference: item.reference!.trim().toUpperCase(),
+          active: item.active,
+          nameFr: item.nameFr,
+          nameAr: item.nameAr,
+          descriptionFr: item.descriptionFr,
+          descriptionAr: item.descriptionAr,
+          category: item.category,
+          price: item.price,
+          uniquePrice: true,
+          sizePrices: variants.sizePrices,
+          onPromo: item.onPromo,
+          promoPrice: item.promoPrice ?? 0,
+          featured: item.featured,
+          inStockApp: item.inStockApp,
+          images,
+          colors: variants.colors.map((color) => ({
+            nameFr: color.nameFr,
+            nameAr: color.nameAr,
+            hex: color.hex,
+            photo: color.image || "",
+            sizes: color.sizes.map((size) => ({ size: size.size, qty: size.stock })),
+          })),
+        };
+      }),
+  });
+}
+
+export async function updateStockQuantities(items: StockQtyItem[]) {
+  let updated = 0;
+  for (const item of items) {
+    const reference = sanitizeText(item.reference, 120).toUpperCase();
+    if (!reference) continue;
+    const existing = await prisma.product.findFirst({ where: { reference } });
+    if (!existing) continue;
+    const variants = getProductVariants(existing);
+    const incoming = new Map(
+      (item.colors ?? []).map((color) => [color.nameFr.trim().toLowerCase(), color]),
+    );
+    for (const color of variants.colors) {
+      const next = incoming.get(color.nameFr.trim().toLowerCase());
+      if (!next) continue;
+      const sizes = new Map(next.sizes.map((row) => [row.size.trim().toLowerCase(), Math.max(0, Math.floor(row.qty) || 0)]));
+      for (const size of color.sizes) {
+        const qty = sizes.get(size.size.trim().toLowerCase());
+        if (qty != null) size.stock = qty;
+      }
+    }
+    const legacy = legacyFieldsFromVariants(variants, true, existing.price);
+    await prisma.product.update({
+      where: { id: existing.id },
+      data: {
+        variants: legacy.variants,
+        stock: legacy.stock,
+        colors: legacy.colors,
+        sizes: legacy.sizes,
+      },
+    });
+    updated += 1;
+  }
+  if (updated) expireStorefrontCache(CACHE_TAGS.products);
+  return jsonWithCors({ ok: true, updated });
 }

@@ -9,6 +9,7 @@ import {
   legacyFieldsFromVariants,
   sanitizeVariantsPayload,
 } from "@/lib/variants";
+import { stockReference } from "@/lib/stock-reference";
 
 const getCachedStorefrontProductsJson = unstable_cache(
   async () => {
@@ -91,7 +92,8 @@ export async function POST(request: Request) {
     slug = `${baseSlug}-${suffix++}`;
   }
 
-  const reference = sanitizeText(body.reference, 120) || null;
+  const inStockApp = body.inStockApp === true;
+  const reference = await stockReference(sanitizeText(body.reference, 120), nameFr, inStockApp);
   const useSinglePrice = Boolean(body.useSinglePrice ?? true);
   const singlePrice = parseFloat(body.price);
   if (!Number.isFinite(singlePrice) || singlePrice < 0) {
@@ -131,6 +133,7 @@ export async function POST(request: Request) {
         stock: legacy.stock,
         featured: body.featured ?? false,
         active: body.active ?? true,
+        inStockApp,
       },
     });
 

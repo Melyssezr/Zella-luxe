@@ -30,6 +30,8 @@ model Product {
   viewCount     Int      @default(0)
   featured      Boolean  @default(false)
   active        Boolean  @default(true)
+  /** Envoyé vers le logiciel de stock. Le logiciel le crée tout seul, sans saisie. */
+  inStockApp    Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   reviews       Review[]

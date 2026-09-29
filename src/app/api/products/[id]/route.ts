@@ -9,6 +9,7 @@ import {
   legacyFieldsFromVariants,
   sanitizeVariantsPayload,
 } from "@/lib/variants";
+import { stockReference } from "@/lib/stock-reference";
 
 export async function PUT(
   request: Request,
@@ -31,7 +32,18 @@ export async function PUT(
     return NextResponse.json({ error: "Catalogue invalide" }, { status: 400 });
   }
 
-  const reference = sanitizeText(body.reference, 120) || null;
+  const current = await prisma.product.findUnique({ where: { id } });
+  if (!current) {
+    return NextResponse.json({ error: "Produit introuvable" }, { status: 404 });
+  }
+  const inStockApp = body.inStockApp === true || current.inStockApp;
+  const askedReference = sanitizeText(body.reference, 120);
+  const reference = await stockReference(
+    askedReference || current.reference || "",
+    sanitizeText(body.nameFr, 200) || current.nameFr,
+    inStockApp && !askedReference && !current.reference,
+    id,
+  );
   const useSinglePrice = Boolean(body.useSinglePrice ?? true);
   const singlePrice = parseFloat(body.price);
   if (!Number.isFinite(singlePrice) || singlePrice < 0) {
@@ -70,6 +82,7 @@ export async function PUT(
       stock: legacy.stock,
       featured: body.featured ?? false,
       active: body.active ?? true,
+      inStockApp,
     },
   });
 

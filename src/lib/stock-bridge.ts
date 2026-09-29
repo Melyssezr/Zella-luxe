@@ -251,6 +251,25 @@ export async function unpublishStockProduct(referenceRaw: string) {
   return jsonWithCors({ reference, published: false, active: false, missing: true });
 }
 
+export async function unlistStockProduct(referenceRaw: string) {
+  const reference = sanitizeText(referenceRaw, 120).toUpperCase();
+  if (!reference) {
+    return jsonWithCors({ error: "Référence requise." }, 400);
+  }
+
+  const existing = await prisma.product.findFirst({ where: { reference } });
+  if (existing) {
+    await prisma.product.update({
+      where: { id: existing.id },
+      data: { inStockApp: false },
+    });
+    expireStorefrontCache(CACHE_TAGS.products);
+    return jsonWithCors({ id: existing.id, reference, inStockApp: false });
+  }
+
+  return jsonWithCors({ reference, inStockApp: false, missing: true });
+}
+
 async function uniqueSlug(nameFr: string, reference: string) {
   const base = slugify(nameFr) || slugify(reference) || "produit";
   let slug = base;

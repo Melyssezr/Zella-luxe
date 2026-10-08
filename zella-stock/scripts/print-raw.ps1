@@ -5,7 +5,7 @@ param(
 
 # Envoi TSPL brut vers une file Windows.
 # Ne bloque JAMAIS sur PnP USB / VID_2D37 / "hors ligne" :
-# si A4 imprime, la file Windows existe — on l'utilise.
+# si A4 imprime, la file Windows existe - on l utilise.
 
 $ErrorActionPreference = "Continue"
 $ProgressPreference = "SilentlyContinue"
@@ -21,7 +21,7 @@ function Ok([string]$msg) {
 }
 
 if (-not (Test-Path -LiteralPath $FilePath)) {
-  Fail "Fichier d'etiquette introuvable."
+  Fail "Fichier etiquette introuvable."
 }
 
 $bytes = $null
@@ -48,7 +48,7 @@ if (-not $queue) {
 }
 $Printer = [string]$queue.Name
 
-# Pilote texte pour laisser passer le TSPL brut (recommandé étiquettes)
+# Pilote texte pour laisser passer le TSPL brut (recommande etiquettes)
 try { Add-PrinterDriver -Name "Generic / Text Only" -ErrorAction SilentlyContinue | Out-Null } catch {}
 if ($queue.DriverName -ne "Generic / Text Only") {
   try {
@@ -161,4 +161,4 @@ try {
   Ok "stream=\\localhost\$share"
 } catch {}
 
-Fail "Impossible d'envoyer l'etiquette vers '$Printer'. Dans Parametres Zella choisis la Xprinter (pas PDF). Pilote recommande: Generic / Text Only. Imprimante allumee."
+Fail "Impossible d envoyer etiquette vers '$Printer'. Dans Parametres Zella choisis la Xprinter (pas PDF). Pilote recommande: Generic / Text Only. Imprimante allumee."

@@ -3,6 +3,7 @@ import seau from "./assets/watch-seau.png";
 import valise from "./assets/watch-valise.png";
 import sac from "./assets/watch-sac.png";
 import { hexFromColorName } from "./color-hex";
+import { resolveScanCode } from "./variant-code";
 
 export type StockStatus = "ok" | "bas" | "rupture";
 
@@ -341,6 +342,14 @@ export function findByRef(ref: string): CatalogProduct | undefined {
   const key = ref.trim().toUpperCase();
   if (!key) return undefined;
   return catalog.find((item) => item.ref.toUpperCase() === key);
+}
+
+export type { ResolvedScan } from "./variant-code";
+export { encodeVariantCode, parseVariantCode, resolveScanCode, labelFields, variantKind } from "./variant-code";
+
+/** Scan pistolet → produit + vraie variante (couleur/pointure). */
+export function findByScanCode(raw: string) {
+  return resolveScanCode(raw, catalog, findByRef);
 }
 
 export function searchCatalog(query: string): CatalogProduct[] {

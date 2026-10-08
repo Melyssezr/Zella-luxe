@@ -1,14 +1,17 @@
 {
-  "name": "zella-stock",
-  "version": "0.1.0",
-  "description": "Zella Stock — gestion de stock Zella Luxe",
+  "name": "zella-luxe",
+  "version": "1.1.0",
+  "description": "Zella Luxe — stock, vente et étiquettes",
   "main": "./out/main/index.js",
   "author": "Zella Luxe",
   "private": true,
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
-    "preview": "electron-vite preview"
+    "preview": "electron-vite preview",
+    "pack": "npm run build && electron-builder --dir",
+    "dist": "npm run build && electron-builder --win nsis",
+    "dist:client": "npm run build && electron-builder --win nsis --config.directories.output=D:/zella-luxe-release"
   },
   "dependencies": {
     "@fontsource/jost": "^5.2.8",
@@ -22,8 +25,48 @@
     "@types/react-dom": "^19.1.6",
     "@vitejs/plugin-react": "^4.7.0",
     "electron": "^37.2.6",
+    "electron-builder": "^26.0.12",
     "electron-vite": "^4.0.0",
     "typescript": "^5.8.3",
     "vite": "^7.0.6"
+  },
+  "build": {
+    "appId": "net.zellaluxe.stock",
+    "productName": "Zella Luxe",
+    "copyright": "Copyright © Zella Luxe",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "out/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "scripts/print-raw.ps1",
+        "to": "scripts/print-raw.ps1"
+      }
+    ],
+    "asar": true,
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "artifactName": "Zella-Luxe-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Zella Luxe",
+      "uninstallDisplayName": "Zella Luxe ${version}",
+      "deleteAppDataOnUninstall": false
+    }
   }
 }

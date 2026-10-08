@@ -3,6 +3,7 @@ import type { Page } from "./App";
 import {
   addStock,
   findByRef,
+  findByScanCode,
   formatPrice,
   listCatalog,
   searchCatalog,
@@ -89,6 +90,20 @@ export function EntreeScreen({ actor = "Admin", onNavigate }: { actor?: string; 
   function applyCode(value: string) {
     const next = value.trim();
     setSearch(next.toUpperCase());
+    const hit = findByScanCode(next);
+    if (hit) {
+      setFoundRef(hit.product.ref);
+      setColor(hit.color);
+      setSize(hit.size);
+      setCost(String(hit.product.cost || ""));
+      setUnknown(false);
+      setOpenSuggest(false);
+      setBulkQty({});
+      setNotice("");
+      setSuccess(`${hit.product.name} · ${hit.color} · ${hit.size} — variante prise directement.`);
+      setTimeout(() => qtyRef.current?.focus(), 40);
+      return;
+    }
     const product = findByRef(next) ?? searchCatalog(next)[0];
     if (product) {
       pick(product);

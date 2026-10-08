@@ -22,8 +22,8 @@ function Remove-Utf8Bom([string]$path) {
 }
 
 function Repair-BrokenUiText([string]$text) {
-  # Remove replacement char U+FFFD
-  $text = $text.Replace([char]0xFFFD, [string]::Empty)
+  # Remove replacement char U+FFFD (use string overload, not char/char)
+  $text = $text.Replace([string][char]0xFFFD, "")
 
   # Force-clean any hint= that mentions etiquette/article (broken quotes safe)
   $cleanHint = 'hint="Passez l''etiquette - l''article apparait en grand ici."'
@@ -38,32 +38,15 @@ function Repair-BrokenUiText([string]$text) {
   $text = [regex]::Replace($text, "([ldns])'\?T", '$1''')
   $text = [regex]::Replace($text, "\?T", "'")
 
-  # Normalize fancy dashes/minus/dot/multiply via char codes only
-  foreach ($ch in @([char]0x2212, [char]0x2013, [char]0x2014, [char]0x00B7, [char]0x2022, [char]0x2018, [char]0x2019)) {
-    $repl = if ($ch -eq [char]0x2018 -or $ch -eq [char]0x2019) { "'" } else { "-" }
-    $text = $text.Replace($ch, $repl)
+  # Normalize fancy dashes/minus/dot/multiply via char codes only (char -> char)
+  foreach ($ch in @([char]0x2212, [char]0x2013, [char]0x2014, [char]0x00B7, [char]0x2022)) {
+    $text = $text.Replace($ch, [char]0x2D)
+  }
+  foreach ($ch in @([char]0x2018, [char]0x2019)) {
+    $text = $text.Replace($ch, [char]0x27)
   }
   foreach ($ch in @([char]0x00D7, [char]0x2715, [char]0x2716)) {
-    $text = $text.Replace($ch, 'x')
-  }
-
-  # Strip leftover C3/C2 mojibake markers by latin1 roundtrip ONLY if still many marks
-  $marks = 0
-  foreach ($ch in @([char]0x00C3, [char]0x00C2)) {
-    $i = 0
-    while (($i = $text.IndexOf($ch, $i)) -ge 0) { $marks++; $i++ }
-  }
-  if ($marks -ge 3) {
-    try {
-      $latin1 = [Text.Encoding]::GetEncoding(28591)
-      $candidate = [Text.Encoding]::UTF8.GetString($latin1.GetBytes($text))
-      $marks2 = 0
-      foreach ($ch in @([char]0x00C3, [char]0x00C2)) {
-        $i = 0
-        while (($i = $candidate.IndexOf($ch, $i)) -ge 0) { $marks2++; $i++ }
-      }
-      if ($marks2 -lt $marks) { $text = $candidate }
-    } catch {}
+    $text = $text.Replace($ch, [char]0x78)
   }
 
   return $text

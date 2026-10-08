@@ -64,7 +64,7 @@ function applyScan(code: string) {
     if (!code.trim()) return;
     const hit = findByScanCode(code);
     if (!hit) {
-      setNotice(`Code inconnu ou variante ambiguë : ${code.trim().toUpperCase()}.`);
+      setNotice(`Code inconnu ou variante ambigue : ${code.trim().toUpperCase()}.`);
       return;
     }
     setRef(hit.product.ref);
@@ -74,7 +74,7 @@ function applyScan(code: string) {
     stopScan();
     if (typeof addToCart === "function") addToCart(hit.product, hit.color, hit.size, 1);
     else if (typeof openTicket === "function") openTicket(hit.product, hit.color, hit.size, 1);
-    setNotice(`${hit.product.name} · ${hit.color} · ${hit.size}`);
+    setNotice(`${hit.product.name} - ${hit.color} - ${hit.size}`);
   }
 '@
     $text = [regex]::Replace($text, $pattern, $replacement, 1)

@@ -4,12 +4,33 @@ Oui : tu peux **désinstaller** l’ancienne version et **réinstaller** le Setu
 
 ## 1) Sur le PC admin (Windows) — générer le Setup
 
-Dans le dossier du logiciel `zella-stock` (celui qui a déjà produit `Zella-Luxe-Setup-1.0.0.exe`) :
+**Important :** ne lance pas ça depuis `C:\WINDOWS\system32`.  
+Ouvre PowerShell, puis va dans le vrai dossier du projet (souvent) :
 
 ```powershell
-cd chemin\vers\zella-stock
+cd C:\Users\hp\Projects\zella-luxe\zella-stock
+```
+
+Si tu ne sais pas où il est, cherche-le :
+
+```powershell
+Get-ChildItem -Path C:\Users,D:\ -Filter pack-installer.ps1 -Recurse -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
+```
+
+ou :
+
+```powershell
+Get-ChildItem -Path C:\Users,D:\ -Filter Zella-Luxe-Setup*.exe -Recurse -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
+```
+
+Puis, **dans le dossier `zella-stock`** qui contient `scripts\pack-installer.ps1` :
+
+```powershell
+cd C:\Users\hp\Projects\zella-luxe\zella-stock
 powershell -ExecutionPolicy Bypass -File .\scripts\pack-installer.ps1
 ```
+
+Si `pack-installer.ps1` n’existe pas encore sur ce PC : récupère d’abord le code (git pull de la branche `cursor/fix-etiquettes-client-8a46`, ou copie le dossier `scripts` depuis GitHub).
 
 Résultat attendu :
 

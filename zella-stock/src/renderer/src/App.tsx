@@ -10,11 +10,12 @@ import { HistoriqueScreen } from "./HistoriqueScreen";
 import { InventaireScreen } from "./InventaireScreen";
 import { ValorisationScreen } from "./ValorisationScreen";
 import { RetourScreen } from "./RetourScreen";
+import { LabelsScreen } from "./LabelsScreen";
 import logo from "./assets/zella-logo.jpg";
 import accueilBg from "./assets/accueil-bg.png";
 
 export type Page =
-  | "accueil" | "stock" | "entree" | "sortie" | "retour"
+  | "accueil" | "stock" | "entree" | "sortie" | "retour" | "etiquettes"
   | "alertes" | "historique" | "inventaire" | "valorisation" | "parametres";
 
 const NAV: { id: Page; label: string }[] = [
@@ -23,6 +24,7 @@ const NAV: { id: Page; label: string }[] = [
   { id: "entree", label: "Entrées" },
   { id: "sortie", label: "Sorties" },
   { id: "retour", label: "Retours" },
+  { id: "etiquettes", label: "Étiquettes" },
   { id: "alertes", label: "Alertes" },
   { id: "historique", label: "Historique" },
   { id: "inventaire", label: "Inventaire" },
@@ -77,6 +79,7 @@ export default function App() {
           : page === "entree" ? <div className="workspace stock-ws"><EntreeScreen actor={roleLabel} onNavigate={setPage} /></div>
           : page === "sortie" ? <div className="workspace stock-ws"><SortieScreen onNavigate={setPage} actor={roleLabel} /></div>
           : page === "retour" ? <div className="workspace stock-ws"><RetourScreen actor={roleLabel} /></div>
+          : page === "etiquettes" ? <div className="workspace stock-ws"><LabelsScreen /></div>
           : page === "alertes" ? <div className="workspace stock-ws"><AlertesScreen roleLabel={roleLabel} onNavigate={setPage} /></div>
           : page === "historique" ? <div className="workspace stock-ws"><HistoriqueScreen /></div>
           : page === "inventaire" ? <div className="workspace stock-ws"><InventaireScreen actor={roleLabel} /></div>

@@ -1,9 +1,11 @@
 import { app, BrowserWindow, ipcMain, screen } from "electron";
+import { writeFileSync } from "fs";
+import { tmpdir } from "os";
 import { join } from "path";
 import { printRawFile, resolvePrintRawScript } from "./print-raw";
 
 const TITLEBAR = "#65232B";
-const APP_VERSION = "1.0.1";
+const APP_VERSION = "1.1.0";
 
 function windowSize() {
   const area = screen.getPrimaryDisplay().workAreaSize;
@@ -101,6 +103,12 @@ app.whenReady().then(() => {
   );
 
   ipcMain.handle("labels:script-path", () => resolvePrintRawScript());
+
+  ipcMain.handle("labels:write-temp", async (_event, content: string) => {
+    const filePath = join(tmpdir(), `zella-label-${Date.now()}.tspl`);
+    writeFileSync(filePath, content, "ascii");
+    return filePath;
+  });
 
   ipcMain.handle("site:request", async (_event, payload: { url: string; key: string; body: unknown }) => {
     const res = await fetch(publishUrl(payload.url), {

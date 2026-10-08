@@ -19,6 +19,7 @@ interface Window {
       filePath: string;
     }) => Promise<{ ok: true; detail: string } | { ok: false; error: string }>;
     getPrintScriptPath?: () => Promise<string | null>;
+    writeTempLabel?: (content: string) => Promise<string>;
     siteRequest: (payload: { url: string; key: string; body: unknown }) => Promise<{
       ok: boolean;
       status: number;

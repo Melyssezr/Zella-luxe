@@ -1,6 +1,6 @@
 {
   "name": "zella-luxe",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "description": "Zella Luxe — stock, vente et étiquettes",
   "main": "./out/main/index.js",
   "author": "Zella Luxe",

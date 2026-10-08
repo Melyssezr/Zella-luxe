@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import type { Page } from "./App";
 import {
   findByRef,
+  findByScanCode,
   availableQty,
   formatPrice,
   listCatalog,
@@ -100,15 +101,18 @@ export function SortieScreen({ onNavigate, actor = "Admin" }: Props) {
 
   function applyScan(code: string) {
     if (!code.trim()) return;
-    const item = findByRef(code);
-    if (!item) {
-      setNotice(`Code inconnu : ${code.trim().toUpperCase()}`);
+    const hit = findByScanCode(code);
+    if (!hit) {
+      setNotice(`Code inconnu ou variante ambiguë : ${code.trim().toUpperCase()}. Réimprime une étiquette variante.`);
       return;
     }
-    setRef(item.ref);
-    setLastScan(item);
+    setRef(hit.product.ref);
+    setColor(hit.color);
+    setSize(hit.size);
+    setLastScan(hit.product);
     stopScan();
-    addToCart(item);
+    addToCart(hit.product, hit.color, hit.size, 1);
+    setNotice(`${hit.product.name} · ${hit.color} · ${hit.size}`);
   }
 
   function submitManual(event: FormEvent) {

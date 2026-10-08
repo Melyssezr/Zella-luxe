@@ -39,7 +39,7 @@ export function printRawFile(printerName: string, filePath: string): Promise<Raw
     if (!script) {
       resolve({
         ok: false,
-        error: "Script print-raw.ps1 manquant. Réinstalle Zella Luxe 1.0.1.",
+        error: "Script print-raw.ps1 manquant. Reinstalle Zella Luxe 1.1.0.",
       });
       return;
     }

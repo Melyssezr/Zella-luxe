@@ -32,12 +32,20 @@ powershell -ExecutionPolicy Bypass -File .\scripts\pack-installer.ps1
 
 Si `pack-installer.ps1` n’existe pas encore sur ce PC : récupère d’abord le code (git pull de la branche `cursor/fix-etiquettes-client-8a46`, ou copie le dossier `scripts` depuis GitHub).
 
-Résultat attendu :
+Résultat attendu (selon la version dans `package.json`) :
 
-- `D:\zella-luxe-release\Zella-Luxe-Setup-1.0.1.exe`  
-  ou `zella-stock\release\Zella-Luxe-Setup-1.0.1.exe`
+- `D:\zella-luxe-release\Zella-Luxe-Setup-1.0.0.exe`  
+  ou `Zella-Luxe-Setup-1.0.1.exe`
 
-Ce Setup embarque `resources\scripts\print-raw.ps1` **sans** blocage « USB hors ligne ».
+Ce Setup doit embarquer `resources\scripts\print-raw.ps1` **sans** blocage « USB hors ligne ».
+
+Vérifie après le build :
+
+```powershell
+Select-String -Path "D:\zella-luxe-release\win-unpacked\resources\scripts\print-raw.ps1" -Pattern "Ne bloque JAMAIS|spooler-raw|VID_2D37"
+```
+
+Si le fichier manque, recopie puis reconstruis, ou utilise `APPLY-FIX-ETIQUETTES.cmd` sur le client après install.
 
 ## 2) Sur le PC client — désinstaller / réinstaller
 

@@ -1,7 +1,9 @@
 import { app, BrowserWindow, ipcMain, screen } from "electron";
 import { join } from "path";
+import { printRawFile, resolvePrintRawScript } from "./print-raw";
 
 const TITLEBAR = "#65232B";
+const APP_VERSION = "1.0.1";
 
 function windowSize() {
   const area = screen.getPrimaryDisplay().workAreaSize;
@@ -26,7 +28,7 @@ function createWindow(): void {
     height,
     minWidth: 1024,
     minHeight: 576,
-    title: "Zella Stock — Zella Luxe",
+    title: "Zella Luxe",
     backgroundColor: TITLEBAR,
     autoHideMenuBar: true,
     titleBarStyle: "hidden",
@@ -66,6 +68,40 @@ function publishUrl(raw: string) {
 }
 
 app.whenReady().then(() => {
+  ipcMain.handle("app:version", () => APP_VERSION);
+
+  ipcMain.handle("printers:list", async () => {
+    try {
+      const { execFile } = await import("child_process");
+      const { promisify } = await import("util");
+      const execFileAsync = promisify(execFile);
+      const { stdout } = await execFileAsync(
+        "powershell.exe",
+        [
+          "-NoProfile",
+          "-Command",
+          "Get-Printer | Select-Object -ExpandProperty Name",
+        ],
+        { windowsHide: true, encoding: "utf8" },
+      );
+      return String(stdout)
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean);
+    } catch {
+      return [];
+    }
+  });
+
+  ipcMain.handle(
+    "labels:print-raw",
+    async (_event, payload: { printerName: string; filePath: string }) => {
+      return printRawFile(payload.printerName, payload.filePath);
+    },
+  );
+
+  ipcMain.handle("labels:script-path", () => resolvePrintRawScript());
+
   ipcMain.handle("site:request", async (_event, payload: { url: string; key: string; body: unknown }) => {
     const res = await fetch(publishUrl(payload.url), {
       method: "POST",

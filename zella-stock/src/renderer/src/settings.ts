@@ -6,6 +6,8 @@ export type AppSettings = {
   lowStock: number;
   displayName: string;
   ticketNote: string;
+  /** Nom exact de la file Windows pour étiquettes TSPL (Xprinter). */
+  printerName: string;
   syncSite: boolean;
   siteUrl: string;
   siteKey: string;
@@ -23,6 +25,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   lowStock: 2,
   displayName: "",
   ticketNote: "Merci pour votre visite.",
+  printerName: "",
   syncSite: false,
   siteUrl: "https://www.zellaluxe.net",
   siteKey: "zella-stock-dev",

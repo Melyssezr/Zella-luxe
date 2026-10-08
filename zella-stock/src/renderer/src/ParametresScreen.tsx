@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { listCatalog } from "./catalog";
 import { listMovements } from "./movements";
 import { loadSettings, saveSettings, type AppSettings } from "./settings";
@@ -9,6 +9,17 @@ export function ParametresScreen({ roleLabel, roleDetail }: { roleLabel: string;
     return { ...saved, displayName: saved.displayName || roleLabel };
   });
   const [notice, setNotice] = useState("");
+  const [printers, setPrinters] = useState<string[]>([]);
+  const [appVersion, setAppVersion] = useState(window.zellaStock?.version ?? "1.0.1");
+
+  useEffect(() => {
+    void window.zellaStock?.getVersion?.().then((v) => {
+      if (v) setAppVersion(v);
+    });
+    void window.zellaStock?.listPrinters?.().then((names) => {
+      if (Array.isArray(names)) setPrinters(names);
+    });
+  }, []);
 
   function update<K extends keyof AppSettings>(key: K, value: AppSettings[K]) {
     setForm((current) => ({ ...current, [key]: value }));
@@ -61,6 +72,32 @@ export function ParametresScreen({ roleLabel, roleDetail }: { roleLabel: string;
           <label>Profil<input value={`${roleLabel} — ${roleDetail}`} readOnly /></label>
           <label>Nom affiché<input value={form.displayName} onChange={(e) => update("displayName", e.target.value)} /></label>
           <label>Texte ticket<input value={form.ticketNote} onChange={(e) => update("ticketNote", e.target.value)} /></label>
+        </div>
+      </div>
+      <div className="params-box">
+        <h2>Imprimante étiquettes</h2>
+        <p className="params-hint">
+          A4 utilise le pilote Windows. Les étiquettes passent en TSPL brut : choisis la Xprinter (pas PDF).
+          Version installée : {appVersion}
+        </p>
+        <div className="params-grid">
+          <label className="wide">
+            Imprimante
+            <select
+              value={form.printerName}
+              onChange={(e) => update("printerName", e.target.value)}
+            >
+              <option value="">— Choisir —</option>
+              {form.printerName && !printers.includes(form.printerName) ? (
+                <option value={form.printerName}>{form.printerName}</option>
+              ) : null}
+              {printers.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+          </label>
         </div>
       </div>
       <div className="params-box">

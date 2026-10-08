@@ -39,7 +39,7 @@ for /d %%D in ("%LOCALAPPDATA%\Programs\Zella Luxe*") do (
 if "!FOUND!"=="0" (
   echo.
   echo Aucune installation Zella Luxe trouvee.
-  echo Installe d'abord Zella-Luxe-Setup-1.0.0.exe puis relance ce fix.
+  echo Installe d'abord Zella-Luxe-Setup-1.0.1.exe puis relance ce fix.
   pause
   exit /b 1
 )

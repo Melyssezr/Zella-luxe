@@ -12,6 +12,13 @@ interface ImportMeta {
 interface Window {
   zellaStock?: {
     version: string;
+    getVersion?: () => Promise<string>;
+    listPrinters?: () => Promise<string[]>;
+    printRawLabel?: (payload: {
+      printerName: string;
+      filePath: string;
+    }) => Promise<{ ok: true; detail: string } | { ok: false; error: string }>;
+    getPrintScriptPath?: () => Promise<string | null>;
     siteRequest: (payload: { url: string; key: string; body: unknown }) => Promise<{
       ok: boolean;
       status: number;

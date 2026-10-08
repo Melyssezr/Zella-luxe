@@ -1,5 +1,5 @@
-# Repair strings corrupted by mojibake pass, then build 1.1.1 for local test
-# ASCII-only script.
+# Repair corrupted UI strings then build 1.1.1 for local test.
+# ASCII-only. No String.Replace(..., "") overload.
 #   powershell -ExecutionPolicy Bypass -File .\scripts\fix-broken-strings-and-build.ps1
 
 $ErrorActionPreference = "Stop"
@@ -20,12 +20,13 @@ function Remove-Utf8Bom([string]$path) {
     [IO.File]::WriteAllBytes($path, $bytes[3..($bytes.Length - 1)])
   }
 }
+function Remove-Char([string]$text, [char]$ch) {
+  return ($text.ToCharArray() | Where-Object { $_ -ne $ch }) -join ""
+}
 
 function Repair-BrokenUiText([string]$text) {
-  # Remove replacement char U+FFFD (use string overload, not char/char)
-  $text = $text.Replace([string][char]0xFFFD, "")
+  $text = Remove-Char $text ([char]0xFFFD)
 
-  # Force-clean any hint= that mentions etiquette/article (broken quotes safe)
   $cleanHint = 'hint="Passez l''etiquette - l''article apparait en grand ici."'
   $text = [regex]::Replace($text, 'hint\s*=\s*"(?:\\.|[^"\\])*"', {
     param($m)
@@ -33,12 +34,10 @@ function Repair-BrokenUiText([string]$text) {
     return $m.Value
   }, 'IgnoreCase')
 
-  # Patterns like l?T / '?T from broken apostrophes
   $text = [regex]::Replace($text, "([ldns])\?T", '$1''')
   $text = [regex]::Replace($text, "([ldns])'\?T", '$1''')
   $text = [regex]::Replace($text, "\?T", "'")
 
-  # Normalize fancy dashes/minus/dot/multiply via char codes only (char -> char)
   foreach ($ch in @([char]0x2212, [char]0x2013, [char]0x2014, [char]0x00B7, [char]0x2022)) {
     $text = $text.Replace($ch, [char]0x2D)
   }
@@ -48,7 +47,6 @@ function Repair-BrokenUiText([string]$text) {
   foreach ($ch in @([char]0x00D7, [char]0x2715, [char]0x2716)) {
     $text = $text.Replace($ch, [char]0x78)
   }
-
   return $text
 }
 
@@ -69,12 +67,8 @@ Write-Host ("  Fixed: {0}" -f $n) -ForegroundColor Green
 $vente = Join-Path $root "src\renderer\src\VenteScreen.tsx"
 if (Test-Path $vente) {
   $v = [IO.File]::ReadAllText($vente)
-  $v = [regex]::Replace(
-    $v,
-    'hint\s*=\s*"(?:\\.|[^"\\])*"',
-    'hint="Passez l''etiquette - l''article apparait en grand ici."'
-  )
-  $v = $v.Replace([string][char]0xFFFD, "")
+  $v = [regex]::Replace($v, 'hint\s*=\s*"(?:\\.|[^"\\])*"', 'hint="Passez l''etiquette - l''article apparait en grand ici."')
+  $v = Remove-Char $v ([char]0xFFFD)
   Write-Utf8NoBom $vente $v
   Write-Host "  VenteScreen hints cleaned" -ForegroundColor Green
   Select-String -Path $vente -Pattern 'hint=' | Select-Object -First 5 | ForEach-Object {
@@ -103,18 +97,7 @@ $pkg = [regex]::Replace($pkg, '"version"\s*:\s*"[^"]+"', '"version": "1.1.1"', 1
 Write-Utf8NoBom $pkgPath $pkg
 $env:CSC_IDENTITY_AUTO_DISCOVERY = "false"
 npm run dist
-if ($LASTEXITCODE -ne 0) {
-  Write-Host "Build failed. Suspicious lines:" -ForegroundColor Red
-  Get-ChildItem (Join-Path $root "src\renderer\src\*.tsx") | ForEach-Object {
-    $lines = Get-Content $_.FullName
-    for ($i = 0; $i -lt $lines.Count; $i++) {
-      if ($lines[$i] -match '\?T' -or $lines[$i].Contains([char]0xFFFD)) {
-        Write-Host ("  {0}:{1}: {2}" -f $_.Name, ($i + 1), $lines[$i].Trim())
-      }
-    }
-  }
-  throw "Build failed"
-}
+if ($LASTEXITCODE -ne 0) { throw "Build failed" }
 
 $printRawSrc = Join-Path $root "scripts\print-raw.ps1"
 $printRawDst = "D:\zella-luxe-release\win-unpacked\resources\scripts\print-raw.ps1"

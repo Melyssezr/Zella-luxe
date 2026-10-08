@@ -3,6 +3,12 @@
 #   powershell -ExecutionPolicy Bypass -File .\scripts\install-v1.1-windows.ps1
 
 $ErrorActionPreference = "Stop"
+
+function Write-Utf8NoBom([string]$path, [string]$text) {
+  $enc = New-Object System.Text.UTF8Encoding $false
+  [IO.File]::WriteAllText($path, $text, $enc)
+}
+
 $ProgressPreference = "SilentlyContinue"
 
 $root = "C:\Users\hp\Projects\zella-luxe\zella-stock"
@@ -37,7 +43,7 @@ $pkg2 = [regex]::Replace($pkg, '"version"\s*:\s*"[^"]+"', '"version": "1.1.0"', 
 if ($pkg2 -notmatch 'extraResources') {
   Write-Host "  (extraResources deja gere par ton build local si present)" -ForegroundColor DarkGray
 }
-Set-Content -Path $pkgPath -Value $pkg2 -Encoding UTF8
+Write-Utf8NoBom $pkgPath $pkg2
 
 Write-Host "3) Patch scan / TSPL dans les ecrans existants ..." -ForegroundColor Cyan
 $files = Get-ChildItem -Path (Join-Path $root "src") -Recurse -Include *.ts,*.tsx -File
@@ -88,7 +94,7 @@ function applyScan(code: string) {
   }
 
   if ($text -ne $orig) {
-    Set-Content -Path $file.FullName -Value $text -Encoding UTF8
+    Write-Utf8NoBom $file.FullName $text
     Write-Host "  patched $($file.FullName)" -ForegroundColor Green
   }
 }
@@ -107,7 +113,7 @@ export function findByScanCode(raw: string) {
   return resolveScanCode(raw, catalog, findByRef);
 }
 "@
-    Set-Content -Path $catalog -Value $c -Encoding UTF8
+    Write-Utf8NoBom $catalog $c
     Write-Host "  catalog.ts: findByScanCode ajoute" -ForegroundColor Green
   }
 }
@@ -134,7 +140,7 @@ ipcMain.handle("labels:write-temp", async (_event, content) => {
 '@
     if ($m -match 'app\.whenReady') {
       $m = $m -replace '(app\.whenReady\(\)\.then\(\(\)\s*=>\s*\{)', "`$1`r`n$snippet"
-      Set-Content -Path $main -Value $m -Encoding UTF8
+      Write-Utf8NoBom $main $m
       Write-Host "  main: labels:write-temp" -ForegroundColor Green
     }
   }
@@ -149,7 +155,7 @@ foreach ($pre in $preloadCandidates) {
   if ($p -notmatch 'writeTempLabel') {
     $p = $p -replace '(contextBridge\.exposeInMainWorld\(\s*["'']zellaStock["'']\s*,\s*\{)', "`$1`r`n  writeTempLabel: (content) => ipcRenderer.invoke(`"labels:write-temp`", content),"
     $p = $p -replace 'version:\s*"[^"]+"', 'version: "1.1.0"'
-    Set-Content -Path $pre -Value $p -Encoding UTF8
+    Write-Utf8NoBom $pre $p
     Write-Host "  preload: writeTempLabel" -ForegroundColor Green
   }
 }

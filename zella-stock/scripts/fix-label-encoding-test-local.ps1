@@ -1,5 +1,4 @@
-# Fix: etiquette 40x20 (nom / barcode / couleur-taille) + caracteres UI (mojibake)
-# Test local uniquement (pas encore pour le client).
+# Fix etiquette 40x20 + caracteres UI, build local pour TEST (pas encore client)
 #   powershell -ExecutionPolicy Bypass -File .\scripts\fix-label-encoding-test-local.ps1
 
 $ErrorActionPreference = "Stop"
@@ -21,147 +20,73 @@ function Remove-Utf8Bom([string]$path) {
   }
 }
 
-$branch = "cursor/fix-etiquettes-client-8a46"
-$base = "https://raw.githubusercontent.com/Melyssezr/Zella-luxe/$branch/zella-stock"
-$renderer = Join-Path $root "src\renderer\src"
-
-Write-Host "1) Telecharger label-tspl 40x20 ..." -ForegroundColor Cyan
-New-Item -ItemType Directory -Force -Path $renderer | Out-Null
-Invoke-WebRequest "$base/src/renderer/src/label-tspl.ts" -OutFile (Join-Path $renderer "label-tspl.ts") -UseBasicParsing
-Invoke-WebRequest "$base/src/renderer/src/variant-code.ts" -OutFile (Join-Path $renderer "variant-code.ts") -UseBasicParsing
-
-Write-Host "2) Corriger mojibake UI (Ã©, Â·, â€™, âˆ') ..." -ForegroundColor Cyan
-$map = [ordered]@{
-  'Ã©' = 'e'; 'Ã¨' = 'e'; 'Ãª' = 'e'; 'Ã«' = 'e'
-  'Ã¡' = 'a'; 'Ã ' = 'a'; 'Ã¢' = 'a'; 'Ã¤' = 'a'
-  'Ã®' = 'i'; 'Ã¯' = 'i'; 'Ã­' = 'i'
-  'Ã´' = 'o'; 'Ã¶' = 'o'; 'Ã³' = 'o'
-  'Ã¹' = 'u'; 'Ã»' = 'u'; 'Ã¼' = 'u'
-  'Ã§' = 'c'; 'Ã‰' = 'E'; 'Ã€' = 'A'
-  'â€™' = "'"; 'â€˜' = "'"; 'â€œ' = '"'; 'â€' = '"'
-  'â€“' = '-'; 'â€”' = '-'; 'âˆ’' = '-'; 'âˆ'' = '-'
-  'Â·' = '-'; 'Â' = ''; 'Ã—' = 'x'; 'Ã—' = 'x'
-  'lâ€™' = "l'"; 'dâ€™' = "d'"; 'nâ€™' = "n'"; 'sâ€™' = "s'"
-  'â†’' = '->'; 'â€¦' = '...'
-}
-# Prefer proper French when possible (UI), after stripping double-encoding leftovers
-$frMap = [ordered]@{
-  'scannÃ©' = 'scanne'; 'scannÃ©e' = 'scannee'
-  'Ã©tiquette' = 'etiquette'; 'Ã©tiquettes' = 'etiquettes'
-  'apparaÃ®t' = 'apparait'; 'sÃ©lection' = 'selection'
-  'Changer lâ€™article' = "Changer l'article"
-  'Changer l''article' = "Changer l'article"
-}
-
-$files = Get-ChildItem -Path (Join-Path $root "src") -Recurse -Include *.ts,*.tsx,*.css,*.json -File
-$fixedCount = 0
-foreach ($f in $files) {
-  Remove-Utf8Bom $f.FullName
-  $text = [IO.File]::ReadAllText($f.FullName)
-  $orig = $text
-
-  # Try full latin1->utf8 undo if file looks double-encoded
-  if ($text -match 'Ã.|Â.|â€') {
+function Repair-Mojibake([string]$text) {
+  if ($text -notmatch [char]0x00C3 -and $text -notmatch [char]0x00C2 -and $text -notmatch [char]0x201A) {
+    # still check common mojibake latin capital A with tilde sequences via regex on UTF8 form
+  }
+  if ($text -match 'Ã|Â.|â€|âˆ') {
     try {
       $latin1 = [Text.Encoding]::GetEncoding(28591)
       $bytes = $latin1.GetBytes($text)
       $candidate = [Text.Encoding]::UTF8.GetString($bytes)
-      # Only keep if it reduces mojibake markers
-      $badBefore = ([regex]::Matches($text, 'Ã.|Â.|â€')).Count
-      $badAfter = ([regex]::Matches($candidate, 'Ã.|Â.|â€')).Count
+      $badBefore = ([regex]::Matches($text, 'Ã|Â.|â€|âˆ')).Count
+      $badAfter = ([regex]::Matches($candidate, 'Ã|Â.|â€|âˆ')).Count
       if ($badAfter -lt $badBefore) { $text = $candidate }
     } catch {}
   }
-
-  foreach ($k in $frMap.Keys) { $text = $text.Replace([string]$k, [string]$frMap[$k]) }
-  foreach ($k in $map.Keys) { $text = $text.Replace([string]$k, [string]$map[$k]) }
-
-  # Normalize unicode minus / bullets / fancy dashes in UI source
-  $text = $text.Replace([char]0x2212, '-')   # minus
-  $text = $text.Replace([char]0x2013, '-')   # en dash
-  $text = $text.Replace([char]0x2014, '-')   # em dash
-  $text = $text.Replace([char]0x00B7, '-')   # middle dot
-  $text = $text.Replace([char]0x2022, '-')   # bullet
-  $text = $text.Replace([char]0x00D7, 'x')   # multiplication sign
+  # Normalize symbols that break UI / labels
+  $text = $text.Replace([char]0x2212, '-')
+  $text = $text.Replace([char]0x2013, '-')
+  $text = $text.Replace([char]0x2014, '-')
+  $text = $text.Replace([char]0x00B7, '-')
+  $text = $text.Replace([char]0x2022, '-')
+  $text = $text.Replace([char]0x00D7, 'x')
   $text = $text.Replace([char]0x2715, 'x')
   $text = $text.Replace([char]0x2716, 'x')
+  $text = $text.Replace([char]0x2212, '-')
+  return $text
+}
 
-  if ($text -ne $orig) {
-    Write-Utf8NoBom $f.FullName $text
+$branch = "cursor/fix-etiquettes-client-8a46"
+$base = "https://raw.githubusercontent.com/Melyssezr/Zella-luxe/$branch/zella-stock"
+$renderer = Join-Path $root "src\renderer\src"
+New-Item -ItemType Directory -Force -Path $renderer | Out-Null
+
+Write-Host "1) label-tspl 40x20 (nom / barcode / couleur-taille) ..." -ForegroundColor Cyan
+Invoke-WebRequest "$base/src/renderer/src/label-tspl.ts" -OutFile (Join-Path $renderer "label-tspl.ts") -UseBasicParsing
+Invoke-WebRequest "$base/src/renderer/src/variant-code.ts" -OutFile (Join-Path $renderer "variant-code.ts") -UseBasicParsing
+
+Write-Host "2) Corriger caracteres deformes dans src\ ..." -ForegroundColor Cyan
+$fixedCount = 0
+Get-ChildItem -Path (Join-Path $root "src") -Recurse -Include *.ts,*.tsx,*.css,*.json -File | ForEach-Object {
+  Remove-Utf8Bom $_.FullName
+  $text = [IO.File]::ReadAllText($_.FullName)
+  $next = Repair-Mojibake $text
+  if ($next -ne $text) {
+    Write-Utf8NoBom $_.FullName $next
     $fixedCount++
-    Write-Host "  encoding: $($f.Name)"
+    Write-Host ("  OK {0}" -f $_.Name)
   }
 }
-Write-Host "  Fichiers corriges: $fixedCount" -ForegroundColor Green
+Write-Host ("  Fichiers corriges: {0}" -f $fixedCount) -ForegroundColor Green
 
-Write-Host "3) Brancher print-labels.ts sur layout 40x20 ..." -ForegroundColor Cyan
-$printLabels = Join-Path $renderer "print-labels.ts"
-if (Test-Path $printLabels) {
-  Remove-Utf8Bom $printLabels
-  $p = [IO.File]::ReadAllText($printLabels)
-  if ($p -notmatch 'buildVariantLabelTspl') {
-    $p = "import { buildVariantLabelTspl } from `"./label-tspl`";`r`n" + $p
-  }
-  # If there is a function that builds TSPL with SIZE, wrap/replace common patterns
-  if ($p -match 'ZELLA LUXE' -or $p -match 'SIZE\s+\d+\s*mm') {
-    # Replace hardcoded brand line
-    $p = $p -replace 'ZELLA LUXE', ''
-    $p = $p -replace 'SIZE\s+\d+\s*mm\s*,\s*\d+\s*mm', 'SIZE 40 mm, 20 mm'
-  }
-
-  # Inject helper export used by printers if missing
-  if ($p -notmatch 'export function buildLabelTspl40x20') {
-    $helper = @'
-
-/** Layout 40x20: nom / barcode / couleur-taille (sans marque). */
-export function buildLabelTspl40x20(opts: {
-  name: string;
-  color: string;
-  size: string;
-  barcode: string;
-  category?: string;
-  copies?: number;
-}): string {
-  const product = {
-    ref: "X",
-    name: opts.name,
-    category: opts.category || "",
-    price: 0,
-    promoPrice: 0,
-    onPromo: false,
-  } as any;
-  return buildVariantLabelTspl({
-    product,
-    color: opts.color || "Unique",
-    size: opts.size || "Unique",
-    copies: opts.copies || 1,
-    barcode: opts.barcode,
-  });
-}
-'@
-    $p = $p.TrimEnd() + "`r`n" + $helper + "`r`n"
-  }
-  Write-Utf8NoBom $printLabels $p
-  Write-Host "  print-labels.ts OK" -ForegroundColor Green
+Write-Host "3) Forcer print-labels.ts layout 40x20 (node patch) ..." -ForegroundColor Cyan
+$patchJs = Join-Path $root "scripts\patch-print-labels-layout.mjs"
+Invoke-WebRequest "$base/scripts/patch-print-labels-layout.mjs" -OutFile $patchJs -UseBasicParsing
+if (Test-Path (Join-Path $renderer "print-labels.ts")) {
+  Remove-Utf8Bom (Join-Path $renderer "print-labels.ts")
+  $p0 = Repair-Mojibake ([IO.File]::ReadAllText((Join-Path $renderer "print-labels.ts")))
+  Write-Utf8NoBom (Join-Path $renderer "print-labels.ts") $p0
+  node $patchJs
+  Write-Host "  Apercu TSPL/marque:" -ForegroundColor DarkGray
+  Select-String -Path (Join-Path $renderer "print-labels.ts") -Pattern 'SIZE|ZELLA|buildVariantLabelTspl|BARCODE' |
+    Select-Object -First 15 |
+    ForEach-Object { Write-Host ("    {0}" -f $_.Line.Trim()) }
 } else {
-  Write-Host "  print-labels.ts introuvable (layout via label-tspl seulement)" -ForegroundColor Yellow
+  Write-Host "  print-labels.ts absent" -ForegroundColor Yellow
 }
 
-# Ensure catalog still exports findByScanCode
-$catalog = Join-Path $renderer "catalog.ts"
-if (Test-Path $catalog) {
-  Remove-Utf8Bom $catalog
-  $c = [IO.File]::ReadAllText($catalog)
-  if ($c -notmatch 'from "./variant-code"') {
-    $c = 'import { resolveScanCode } from "./variant-code";' + "`r`n" + $c
-  }
-  if ($c -notmatch 'export function findByScanCode') {
-    $c += "`r`nexport function findByScanCode(raw: string) {`r`n  return resolveScanCode(raw, catalog, findByRef);`r`n}`r`n"
-  }
-  Write-Utf8NoBom $catalog $c
-}
-
-Write-Host "4) Build local 1.1.1 pour test ici ..." -ForegroundColor Cyan
+Write-Host "4) Build 1.1.1 local ..." -ForegroundColor Cyan
 $pkgPath = Join-Path $root "package.json"
 Remove-Utf8Bom $pkgPath
 $pkg = [IO.File]::ReadAllText($pkgPath)
@@ -172,14 +97,21 @@ $env:CSC_IDENTITY_AUTO_DISCOVERY = "false"
 npm run dist
 if ($LASTEXITCODE -ne 0) { throw "Build echoue" }
 
+# Patch print-raw into unpacked for immediate test
+$printRawSrc = Join-Path $root "scripts\print-raw.ps1"
+$printRawDst = "D:\zella-luxe-release\win-unpacked\resources\scripts\print-raw.ps1"
+if ((Test-Path $printRawSrc) -and (Test-Path "D:\zella-luxe-release\win-unpacked\resources")) {
+  New-Item -ItemType Directory -Force -Path (Split-Path $printRawDst) | Out-Null
+  Copy-Item -Force $printRawSrc $printRawDst
+}
+
 Write-Host ""
-Write-Host "=== TEST LOCAL ===" -ForegroundColor Green
+Write-Host "=== PRET POUR TEST SUR CE PC ===" -ForegroundColor Green
 Write-Host "1. Ferme Zella Luxe"
-Write-Host "2. Lance: D:\zella-luxe-release\win-unpacked\Zella Luxe.exe"
-Write-Host "   (ou reinstalle D:\zella-luxe-release\Zella-Luxe-Setup-1.1.1.exe sur CE PC seulement)"
-Write-Host "3. Verifie UI: plus de scannA, A-, caracteres bizarres"
-Write-Host "4. Imprime une etiquette 40x20: nom haut, barcode milieu, couleur/taille bas"
-Write-Host "5. Dis-moi si OK avant envoi client"
-Get-ChildItem "D:\zella-luxe-release\Zella-Luxe-Setup*.exe" -ErrorAction SilentlyContinue |
-  Sort-Object LastWriteTime -Descending | Select-Object -First 3 |
-  ForEach-Object { Write-Host ("Setup: {0}" -f $_.FullName) }
+Write-Host "2. Lance:  D:\zella-luxe-release\win-unpacked\Zella Luxe.exe"
+Write-Host "3. UI: plus de caracteres bizarres (scannA / A- / minus foireux)"
+Write-Host "4. Etiquette: NOM en haut, CODE-BARRES au milieu, COULEUR+TAILLE en bas"
+Write-Host "   (plus de ZELLA LUXE, police plus petite, 40x20)"
+Write-Host "5. Dis-moi le resultat AVANT envoi au client"
+Get-ChildItem "D:\zella-luxe-release\Zella-Luxe-Setup-1.1.1.exe","D:\zella-luxe-release\Zella-Luxe-Setup-1.1.0.exe" -ErrorAction SilentlyContinue |
+  ForEach-Object { Write-Host ("Fichier: {0}" -f $_.FullName) }

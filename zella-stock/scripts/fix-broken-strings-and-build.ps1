@@ -74,8 +74,7 @@ if (Test-Path $vente) {
     'hint\s*=\s*"(?:\\.|[^"\\])*"',
     'hint="Passez l''etiquette - l''article apparait en grand ici."'
   )
-  # Broader: if file still has FFFD near Passez
-  $v = $v.Replace([char]0xFFFD, [string]::Empty)
+  $v = $v.Replace([string][char]0xFFFD, "")
   Write-Utf8NoBom $vente $v
   Write-Host "  VenteScreen hints cleaned" -ForegroundColor Green
   Select-String -Path $vente -Pattern 'hint=' | Select-Object -First 5 | ForEach-Object {

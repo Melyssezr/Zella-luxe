@@ -52,14 +52,20 @@ foreach ($file in $files) {
   if (-not $text) { continue }
   $orig = $text
 
-  # Import findByScanCode if applyScan/findByRef present in vente/sortie/retour
+  # Import findByScanCode safely into existing catalog import
   if ($text -match 'function applyScan\(' -and $text -notmatch 'findByScanCode') {
-    if ($text -match 'from ["''].*catalog["'']') {
-      $text = $text -replace '(import\s*\{)([^}]*findByRef[^}]*)(\}\s*from\s*["''][^"'']*catalog["''])', '$1$2, findByScanCode$3'
-      if ($text -eq $orig -or $text -notmatch 'findByScanCode') {
-        $text = $text -replace '(import\s*\{)(\s*)', "`$1`$2findByScanCode, "
-      }
-    }
+    $text = [regex]::Replace(
+      $text,
+      'import\s*\{([^}]*)\}\s*from\s*["''](\.\/catalog)["'']',
+      {
+        param($m)
+        $inner = $m.Groups[1].Value.Trim().TrimEnd(',')
+        if ($inner -match 'findByScanCode') { return $m.Value }
+        if ([string]::IsNullOrWhiteSpace($inner)) { return 'import { findByScanCode } from "./catalog"' }
+        return ('import { ' + $inner + ', findByScanCode } from "./catalog"')
+      },
+      1
+    )
   }
 
   # Replace naive applyScan body that only uses findByRef

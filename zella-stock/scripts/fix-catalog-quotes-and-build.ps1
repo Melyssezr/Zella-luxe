@@ -34,8 +34,10 @@ Get-ChildItem -Path (Join-Path $root "src") -Recurse -Include *.ts,*.tsx -File |
   )
 
   # leftover mojibake word fragments in seed descriptions (ASCII fallback)
-  $text = $text.Replace('soirÃ©e', 'soiree')
-  $text = $text.Replace('soirÃ©', 'soiree')
+
+
+  # Fix UTF-8 mojibake of e-acute inside seed strings: C3 83 C2 A9 or literal A-tilde sequences
+  $text = $text.Replace([string]([char]0x00C3) + [string]([char]0x00A9), "e")
 
   # collapse double spaces in descriptions
   $text = [regex]::Replace($text, 'caisse  - ', 'caisse - ')

@@ -1,4 +1,5 @@
 # Repair strings corrupted by mojibake pass, then build 1.1.1 for local test
+# ASCII-only script.
 #   powershell -ExecutionPolicy Bypass -File .\scripts\fix-broken-strings-and-build.ps1
 
 $ErrorActionPreference = "Stop"
@@ -22,64 +23,47 @@ function Remove-Utf8Bom([string]$path) {
 
 function Repair-BrokenUiText([string]$text) {
   # Remove replacement char U+FFFD
-  $text = $text.Replace([char]0xFFFD, '')
+  $text = $text.Replace([char]0xFFFD, [string]::Empty)
 
-  # Broken hint on VenteScreen / ScanGunField (quote-breaking corruption)
-  $text = [regex]::Replace(
-    $text,
-    'hint\s*=\s*"[^"]*(etiquette|article)[^"]*"',
-    'hint="Passez l''etiquette - l''article apparait en grand ici."',
-    'IgnoreCase'
-  )
+  # Force-clean any hint= that mentions etiquette/article (broken quotes safe)
+  $cleanHint = 'hint="Passez l''etiquette - l''article apparait en grand ici."'
+  $text = [regex]::Replace($text, 'hint\s*=\s*"(?:\\.|[^"\\])*"', {
+    param($m)
+    if ($m.Value -match 'etiquette|article|Passez|Lecteur') { return $cleanHint }
+    return $m.Value
+  }, 'IgnoreCase')
 
-  # Common corrupted fragments -> clean ASCII French
-  $pairs = @(
-    @("l'?T", "l'"),
-    @("l?T", "l'"),
-    @("d'?T", "d'"),
-    @("n'?T", "n'"),
-    @("s'?T", "s'"),
-    @("'?T", "'"),
-    @("?T", "'"),
-    @("â€™", "'"),
-    @("â€˜", "'"),
-    @("â€“", "-"),
-    @("â€”", "-"),
-    @("âˆ’", "-"),
-    @("Â·", "-"),
-    @("Ã©", "e"),
-    @("Ã¨", "e"),
-    @("Ãª", "e"),
-    @("Ã ", "a"),
-    @("Ã§", "c"),
-    @("Ã®", "i"),
-    @("Ã´", "o"),
-    @("Ã¹", "u"),
-    @("Ã‰", "E"),
-    @("scannÃ©", "scanne"),
-    @("scannÃ©e", "scannee"),
-    @("apparaÃ®t", "apparait"),
-    @("Ã©tiquette", "etiquette"),
-    @("Ã©tiquettes", "etiquettes")
-  )
-  foreach ($pair in $pairs) {
-    $text = $text.Replace($pair[0], $pair[1])
-  }
+  # Patterns like l?T / '?T from broken apostrophes
+  $text = [regex]::Replace($text, "([ldns])\?T", '$1''')
+  $text = [regex]::Replace($text, "([ldns])'\?T", '$1''')
+  $text = [regex]::Replace($text, "\?T", "'")
 
-  # If a double-quoted JSX/TS string got split by a rogue quote from corruption,
-  # fix known ScanGunField hint line more aggressively (even with newlines)
-  $text = [regex]::Replace(
-    $text,
-    'hint=\{?"Passez[\s\S]*?ici\."\}?',
-    'hint="Passez l''etiquette - l''article apparait en grand ici."'
-  )
-
-  # Normalize fancy dashes/minus again
-  foreach ($ch in @([char]0x2212, [char]0x2013, [char]0x2014, [char]0x00B7, [char]0x2022)) {
-    $text = $text.Replace($ch, '-')
+  # Normalize fancy dashes/minus/dot/multiply via char codes only
+  foreach ($ch in @([char]0x2212, [char]0x2013, [char]0x2014, [char]0x00B7, [char]0x2022, [char]0x2018, [char]0x2019)) {
+    $repl = if ($ch -eq [char]0x2018 -or $ch -eq [char]0x2019) { "'" } else { "-" }
+    $text = $text.Replace($ch, $repl)
   }
   foreach ($ch in @([char]0x00D7, [char]0x2715, [char]0x2716)) {
     $text = $text.Replace($ch, 'x')
+  }
+
+  # Strip leftover C3/C2 mojibake markers by latin1 roundtrip ONLY if still many marks
+  $marks = 0
+  foreach ($ch in @([char]0x00C3, [char]0x00C2)) {
+    $i = 0
+    while (($i = $text.IndexOf($ch, $i)) -ge 0) { $marks++; $i++ }
+  }
+  if ($marks -ge 3) {
+    try {
+      $latin1 = [Text.Encoding]::GetEncoding(28591)
+      $candidate = [Text.Encoding]::UTF8.GetString($latin1.GetBytes($text))
+      $marks2 = 0
+      foreach ($ch in @([char]0x00C3, [char]0x00C2)) {
+        $i = 0
+        while (($i = $candidate.IndexOf($ch, $i)) -ge 0) { $marks2++; $i++ }
+      }
+      if ($marks2 -lt $marks) { $text = $candidate }
+    } catch {}
   }
 
   return $text
@@ -99,34 +83,34 @@ Get-ChildItem -Path (Join-Path $root "src") -Recurse -Include *.ts,*.tsx -File |
 }
 Write-Host ("  Fixed: {0}" -f $n) -ForegroundColor Green
 
-# Explicit VenteScreen safety: rewrite any hint= near ScanGunField
 $vente = Join-Path $root "src\renderer\src\VenteScreen.tsx"
 if (Test-Path $vente) {
   $v = [IO.File]::ReadAllText($vente)
-  $v2 = [regex]::Replace(
+  $v = [regex]::Replace(
     $v,
-    '(<ScanGunField[\s\S]*?hint\s*=\s*)(?:"[^"]*"|\{[^}]*\})',
-    '$1"Passez l''etiquette - l''article apparait en grand ici."'
+    'hint\s*=\s*"(?:\\.|[^"\\])*"',
+    'hint="Passez l''etiquette - l''article apparait en grand ici."'
   )
-  # If still contains replacement char near line with etiquette
-  if ($v2.IndexOf([char]0xFFFD) -ge 0) {
-    $v2 = $v2.Replace([char]0xFFFD, '')
+  # Broader: if file still has FFFD near Passez
+  $v = $v.Replace([char]0xFFFD, [string]::Empty)
+  Write-Utf8NoBom $vente $v
+  Write-Host "  VenteScreen hints cleaned" -ForegroundColor Green
+  Select-String -Path $vente -Pattern 'hint=' | Select-Object -First 5 | ForEach-Object {
+    Write-Host ("    {0}" -f $_.Line.Trim())
   }
-  # Fix the exact broken pattern from build log
-  $v2 = $v2 -replace 'hint="Passez[^"]*ici\."', 'hint="Passez l''etiquette - l''article apparait en grand ici."'
-  Write-Utf8NoBom $vente $v2
-  Write-Host "  VenteScreen hint forced clean" -ForegroundColor Green
-  Select-String -Path $vente -Pattern 'hint=' | Select-Object -First 5 | ForEach-Object { Write-Host ("    {0}" -f $_.Line.Trim()) }
 }
 
-Write-Host "2) Ensure label-tspl present ..." -ForegroundColor Cyan
-$branch = "cursor/fix-etiquettes-client-8a46"
-$base = "https://raw.githubusercontent.com/Melyssezr/Zella-luxe/$branch/zella-stock"
+Write-Host "2) Refresh label modules ..." -ForegroundColor Cyan
+$base = "https://raw.githubusercontent.com/Melyssezr/Zella-luxe/cursor/fix-etiquettes-client-8a46/zella-stock"
 $renderer = Join-Path $root "src\renderer\src"
 Invoke-WebRequest "$base/src/renderer/src/label-tspl.ts" -OutFile (Join-Path $renderer "label-tspl.ts") -UseBasicParsing
 Invoke-WebRequest "$base/src/renderer/src/variant-code.ts" -OutFile (Join-Path $renderer "variant-code.ts") -UseBasicParsing
-if (Test-Path (Join-Path $root "scripts\patch-print-labels-layout.mjs")) {
-  node (Join-Path $root "scripts\patch-print-labels-layout.mjs")
+$patchJs = Join-Path $root "scripts\patch-print-labels-layout.mjs"
+if (-not (Test-Path $patchJs)) {
+  Invoke-WebRequest "$base/scripts/patch-print-labels-layout.mjs" -OutFile $patchJs -UseBasicParsing
+}
+if (Test-Path (Join-Path $renderer "print-labels.ts")) {
+  node $patchJs
 }
 
 Write-Host "3) Build 1.1.1 ..." -ForegroundColor Cyan
@@ -138,10 +122,14 @@ Write-Utf8NoBom $pkgPath $pkg
 $env:CSC_IDENTITY_AUTO_DISCOVERY = "false"
 npm run dist
 if ($LASTEXITCODE -ne 0) {
-  Write-Host "Build failed - showing suspicious lines:" -ForegroundColor Red
-  Get-ChildItem (Join-Path $root "src\renderer\src") -Filter *.tsx | ForEach-Object {
-    Select-String -Path $_.FullName -Pattern ([char]0xFFFD), '\?T', 'Ã', 'Â' -SimpleMatch:$false -ErrorAction SilentlyContinue |
-      Select-Object -First 3
+  Write-Host "Build failed. Suspicious lines:" -ForegroundColor Red
+  Get-ChildItem (Join-Path $root "src\renderer\src\*.tsx") | ForEach-Object {
+    $lines = Get-Content $_.FullName
+    for ($i = 0; $i -lt $lines.Count; $i++) {
+      if ($lines[$i] -match '\?T' -or $lines[$i].Contains([char]0xFFFD)) {
+        Write-Host ("  {0}:{1}: {2}" -f $_.Name, ($i + 1), $lines[$i].Trim())
+      }
+    }
   }
   throw "Build failed"
 }
@@ -156,6 +144,5 @@ if ((Test-Path $printRawSrc) -and (Test-Path "D:\zella-luxe-release\win-unpacked
 Write-Host ""
 Write-Host "=== READY LOCAL TEST ===" -ForegroundColor Green
 Write-Host "Run: D:\zella-luxe-release\win-unpacked\Zella Luxe.exe"
-Write-Host "Then print a label and check UI text"
 Get-ChildItem "D:\zella-luxe-release\Zella-Luxe-Setup-1.1.1.exe" -ErrorAction SilentlyContinue |
   ForEach-Object { Write-Host ("Setup: {0}" -f $_.FullName) }
